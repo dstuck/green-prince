@@ -10,6 +10,12 @@
       },
       "hash": "417cf351a152b483c91e6e2deaf7ae355fa8eff3"
     },
+    "com.dstuck.card-framework": {
+      "version": "file:com.dstuck.card-framework",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.unity.2d.animation": {
       "version": "10.2.2",
       "depth": 1,

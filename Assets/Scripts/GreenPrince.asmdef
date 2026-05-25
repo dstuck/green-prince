@@ -1,0 +1,11 @@
+{
+    "name": "GreenPrince",
+    "rootNamespace": "GreenPrince",
+    "references": [
+        "GUID:99f111bee35c54cb4a6be64e1e376459",
+        "GUID:8c489a700513a47e8bf434fe2e0905f9",
+        "GUID:75469ad4d38634e559750d17036d5f7c",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f"
+    ],
+    "autoReferenced": true
+}

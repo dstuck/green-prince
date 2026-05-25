@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1e492a3307c849adaf5153c9af8b06c, type: 3}
+  m_Name: ForestRecipe
+  m_EditorClassIdentifier: 
+  m_Entries:
+  - Definition: {fileID: 11400000, guid: 1e9e9f7d7dbca4b8abf0c791974cb6ae, type: 2}
+    Count: 4
+  - Definition: {fileID: 11400000, guid: f2e897b0baa2d4fbba05b3dada23e1f4, type: 2}
+    Count: 4
+  - Definition: {fileID: 11400000, guid: 6656a55bb4d484084970b916874d854a, type: 2}
+    Count: 2
+  - Definition: {fileID: 11400000, guid: ba466ed0045f94539ba9daca75464a45, type: 2}
+    Count: 3
+  - Definition: {fileID: 11400000, guid: 504e03b6c63ed40f4ac57efc3ca29b15, type: 2}
+    Count: 3
+  - Definition: {fileID: 11400000, guid: e426d1a9efbe04550ba88117990ca172, type: 2}
+    Count: 1
+  - Definition: {fileID: 11400000, guid: ec24f61e8278c441a8c8526174ffb805, type: 2}
+    Count: 3
+  - Definition: {fileID: 11400000, guid: 8bb1c560d55e14f38b0b8ff4d83b0f5e, type: 2}
+    Count: 2
+  - Definition: {fileID: 11400000, guid: f4df33f276bd949cab5fc281781213bb, type: 2}
+    Count: 1
