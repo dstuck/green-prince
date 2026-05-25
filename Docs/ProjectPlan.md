@@ -17,10 +17,10 @@ After overcoming persistent challenges and identifying a new landmark, they must
 ---
 
 v0.1 - explore tiles filled by cards
-- [ ] Deck filled with green, red, and blue cards with numbers
-- [ ] Tiled map 7 high and 20 wide full of dark squares initially
-- [ ] Adventurers start at camp in the middle left tile and move in cardinal directions
-- [ ] Fill in empty squares adjacent to adventurers from the deck
+- [x] Deck filled with green, red, and blue cards with numbers
+- [x] Tiled map 7 high and 20 wide full of dark squares initially
+- [x] Adventurers start at camp in the middle left tile and move in cardinal directions
+- [x] Fill in empty squares adjacent to adventurers from the deck
 
 v0.2 - resources
 - [ ] Add food, force, and tools as resources starting at 10, 5, 4
