@@ -1,0 +1,12 @@
+---
+description: Guidelines for the unity-card-framework dependency
+globs: Packages/manifest.json
+alwaysApply: false
+---
+
+# Card Framework Dependency
+
+- The `com.dstuck.card-framework` package uses a local `file:` path in `manifest.json` for **development only**.
+- For releases/sharing, the reference should point to the GitHub repo: `https://github.com/dstuck/unity-card-framework.git`
+- When modifying card framework code, edit the **source repo** (`../unity-card-framework`), not the embedded copy Unity places in `Packages/com.dstuck.card-framework/`.
+- The embedded copy in `Packages/` should be in `.gitignore`.

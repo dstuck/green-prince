@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 using CardFramework;
 
 namespace GreenPrince
@@ -6,10 +7,11 @@ namespace GreenPrince
     [CreateAssetMenu(fileName = "TileDefinition", menuName = "Green Prince/Tile Definition")]
     public class TileDefinitionSO : CardDefinitionSO
     {
-        [SerializeField] TileColor m_Color;
+        [FormerlySerializedAs("m_Color")]
+        [SerializeField] ResourceType m_ResourceType;
         [SerializeField] int m_ChallengeValue;
 
-        public TileColor Color => m_Color;
+        public ResourceType ResourceType => m_ResourceType;
         public int ChallengeValue => m_ChallengeValue;
     }
 }

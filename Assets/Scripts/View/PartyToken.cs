@@ -30,6 +30,8 @@ namespace GreenPrince
         {
             var action = m_MoveActionRef?.action;
             if (action != null) action.Enable();
+            m_WasNeutral = true;
+            m_CooldownTimer = 0f;
         }
 
         void OnDisable()
