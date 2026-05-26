@@ -1,4 +1,3 @@
-using CardFramework;
 using TMPro;
 using UnityEngine;
 
@@ -38,7 +37,7 @@ namespace GreenPrince
 
         public void ShowRevealed(TileDefinitionSO definition, TileInstanceState state, bool visited)
         {
-            m_Renderer.color = GetTileColor(definition.Color);
+            m_Renderer.color = ResourceColors.Get(definition.ResourceType);
 
             if (visited)
             {
@@ -51,17 +50,6 @@ namespace GreenPrince
                 : definition.ChallengeValue;
 
             m_Label.text = value > 0 ? value.ToString() : "";
-        }
-
-        static Color GetTileColor(TileColor tileColor)
-        {
-            return tileColor switch
-            {
-                TileColor.Green => new Color(0.3f, 0.7f, 0.35f),
-                TileColor.Red => new Color(0.8f, 0.3f, 0.3f),
-                TileColor.Blue => new Color(0.3f, 0.45f, 0.8f),
-                _ => Color.white
-            };
         }
     }
 }

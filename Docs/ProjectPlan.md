@@ -23,11 +23,11 @@ v0.1 - explore tiles filled by cards
 - [x] Fill in empty squares adjacent to adventurers from the deck
 
 v0.2 - resources
-- [ ] Add food, force, and tools as resources starting at 10, 5, 4
-- [ ] Cooresponding tiles cost those resources based on their value
-- [ ] Every n tiles consume one food (n=5 for base party)
-- [ ] Create resource UI
-- [ ] Add failure state when a resource runs out
+- [x] Add food, force, and tools as resources starting at 10, 5, 4
+- [x] Cooresponding tiles cost those resources based on their value
+- [x] Every n tiles consume one food (n=5 for base party)
+- [x] Create resource UI
+- [x] Add failure state when a resource runs out
 
 v0.3 - party
 - [ ] Select party member screen before adventure
