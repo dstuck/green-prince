@@ -24,11 +24,19 @@ namespace GreenPrince
 
             for (int x = 0; x < width; x++)
             for (int y = 0; y < height; y++)
-                m_Tiles[x, y] = new TileState();
+            {
+                var tile = new TileState();
+                tile.Terrain = WorldState.GetTerrain(x, y);
+                tile.IsExplored = WorldState.IsExplored(x, y);
+                tile.Feature = WorldState.GetFeatureAt(new Vector2Int(x, y));
+                tile.Pickups = WorldState.GetPickupsAt(new Vector2Int(x, y));
+                m_Tiles[x, y] = tile;
+            }
 
             var camp = m_Tiles[campPosition.x, campPosition.y];
             camp.IsCamp = true;
             camp.IsRevealed = true;
+            camp.IsExplored = true;
         }
 
         public bool IsInBounds(Vector2Int pos)
@@ -40,11 +48,12 @@ namespace GreenPrince
 
         public bool IsRevealed(Vector2Int pos) => m_Tiles[pos.x, pos.y].IsRevealed;
 
-        public void RevealTile(Vector2Int pos, CardInstance card)
+        public void RevealTile(Vector2Int pos, CardInstance card = null)
         {
             var tile = m_Tiles[pos.x, pos.y];
             tile.Card = card;
             tile.IsRevealed = true;
+            WorldState.MarkExplored(pos.x, pos.y);
         }
 
         public List<Vector2Int> GetUnrevealedAdjacent(Vector2Int pos)

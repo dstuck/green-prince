@@ -14,6 +14,13 @@ After calling an end to the run or losing all of their food they trudge back to 
 
 After overcoming persistent challenges and identifying a new landmark, they must pack up camp travel across the map in a high risk caravan of all their supplies to progress permenantly.
 
+## Resources
+
+Adventurers start their journey with food (yellow), force (red), and tools (blue) as core resources and will collect camp resources:
+technology (purple): aligned with force and tools, improves camp capabilities
+experience (orange): aligned with food and force, improves adventurers
+lore (green): aligned with food and tools, improves nature tiles
+
 ---
 
 v0.1 - explore tiles filled by cards
@@ -29,12 +36,19 @@ v0.2 - resources
 - [x] Create resource UI
 - [x] Add failure state when a resource runs out
 
-v0.3 - party
+v0.3 - persistence
+- [x] Add an underlaying terrain board that is populated on game start
+- [x] Implement camp resources, for now these only show up when you click the camp in a pop up
+- [x] Add 2 landmarks somewhere 6-9 and 12-15 squares out from camp
+- [x] Separate handling of revealing the environment and challenges, previously explored tiles should have a lighter fog that shows the underlying terrain or landmark but show clearly that you haven't adventured there yet
+- [x] Add a quit option in the pause menu to fully restart the game resetting persist elements
+
+v0.4 - party
 - [ ] Select party member screen before adventure
 - [ ] 4 party members with abilities that affect drawn tiles (reduce damage by one, find food in green tiles)
 - [ ] Placed tiles get modified by party before showing up on map
 
-v0.4 - camp
+v0.5 - camp
 - [ ] Adventurers left at camp modify resource gain at camp 
 - [ ] Collect camp resources as you explore
 - [ ] Camp resources improve adventurers and modify map tiles
