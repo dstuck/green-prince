@@ -32,6 +32,7 @@ namespace GreenPrince
         AdventureResources m_Resources;
         ResourceHUD m_HUD;
         PauseMenu m_PauseMenu;
+        CampPopup m_CampPopup;
         GameState m_State = GameState.Exploring;
 
         void Start()
@@ -41,8 +42,10 @@ namespace GreenPrince
 
             var catalog = new CardCatalog(m_Registry);
             var rng = new SystemRandomSource();
-            m_Deck = new LandDeck(m_LandRecipe, catalog, rng);
 
+            WorldState.Initialize(m_GridWidth, m_GridHeight, rng);
+
+            m_Deck = new LandDeck(m_LandRecipe, catalog, rng);
             m_Pipeline = new CardPipeline();
 
             var campPos = new Vector2Int(0, m_GridHeight / 2);
@@ -58,6 +61,7 @@ namespace GreenPrince
             m_Resources = new AdventureResources(m_StartFood, m_StartForce, m_StartTools);
             InitHUD();
             InitPauseMenu();
+            InitCampPopup();
 
             m_PartyToken.MoveRequested += OnMoveRequested;
         }
@@ -72,6 +76,7 @@ namespace GreenPrince
                 m_PauseMenu.PauseRequested -= OnPauseRequested;
                 m_PauseMenu.ResumeRequested -= OnResumeRequested;
                 m_PauseMenu.GiveUpRequested -= OnGiveUpRequested;
+                m_PauseMenu.QuitRequested -= OnQuitRequested;
             }
         }
 
@@ -89,6 +94,13 @@ namespace GreenPrince
             m_PauseMenu.PauseRequested += OnPauseRequested;
             m_PauseMenu.ResumeRequested += OnResumeRequested;
             m_PauseMenu.GiveUpRequested += OnGiveUpRequested;
+            m_PauseMenu.QuitRequested += OnQuitRequested;
+        }
+
+        void InitCampPopup()
+        {
+            var campGo = new GameObject("CampPopup");
+            m_CampPopup = campGo.AddComponent<CampPopup>();
         }
 
         void OnPauseRequested()
@@ -108,6 +120,12 @@ namespace GreenPrince
             TriggerGameOver();
         }
 
+        void OnQuitRequested()
+        {
+            WorldState.Reset();
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+
         void OnMoveRequested(Vector2Int direction)
         {
             if (m_State != GameState.Exploring) return;
@@ -116,37 +134,73 @@ namespace GreenPrince
 
             if (!m_Grid.IsInBounds(target)) return;
 
+            var tile = m_Grid.GetTile(target);
+
+            if (tile.IsCamp)
+            {
+                var worldPos = m_GridView.GridToWorld(target);
+                m_PartyToken.MoveTo(target, worldPos);
+                m_CampPopup.Show();
+                return;
+            }
+
             if (!m_Grid.IsRevealed(target))
                 RevealTile(target);
 
-            var tile = m_Grid.GetTile(target);
+            tile = m_Grid.GetTile(target);
 
-            if (!tile.IsVisited && tile.Card != null)
+            if (!tile.IsVisited)
             {
-                var def = m_Registry.Get(tile.Card.DefinitionId) as TileDefinitionSO;
-                if (def != null)
-                {
-                    int cost = GetEffectiveCost(def, tile.Card.State as TileInstanceState);
-                    if (!m_Resources.CanAfford(def.ResourceType, cost))
-                    {
-                        m_HUD.FlashInsufficient(def.ResourceType);
-                        return;
-                    }
+                ResourceType costType;
+                int cost;
 
-                    m_Resources.Spend(def.ResourceType, cost);
-                    if (cost > 0)
-                        m_HUD.FlashSpend(def.ResourceType);
+                if (tile.Landmark != null)
+                {
+                    costType = tile.Landmark.ChallengeType;
+                    cost = tile.Landmark.ChallengeValue;
+                }
+                else if (tile.Card != null)
+                {
+                    var def = m_Registry.Get(tile.Card.DefinitionId) as TileDefinitionSO;
+                    if (def != null)
+                    {
+                        costType = def.ResourceType;
+                        cost = GetEffectiveCost(def, tile.Card.State as TileInstanceState);
+                    }
+                    else
+                    {
+                        costType = ResourceType.Food;
+                        cost = 0;
+                    }
+                }
+                else
+                {
+                    costType = ResourceType.Food;
+                    cost = 0;
+                }
+
+                if (cost > 0 && !m_Resources.CanAfford(costType, cost))
+                {
+                    m_HUD.FlashInsufficient(costType);
+                    return;
+                }
+
+                if (cost > 0)
+                {
+                    m_Resources.Spend(costType, cost);
+                    m_HUD.FlashSpend(costType);
                 }
             }
 
             if (!tile.IsVisited)
             {
                 tile.IsVisited = true;
+                tile.IsExplored = true;
                 m_GridView.UpdateTile(target, tile);
             }
 
-            var worldPos = m_GridView.GridToWorld(target);
-            m_PartyToken.MoveTo(target, worldPos);
+            var wp = m_GridView.GridToWorld(target);
+            m_PartyToken.MoveTo(target, wp);
 
             RevealAdjacent(target);
 
@@ -181,6 +235,15 @@ namespace GreenPrince
 
         void RevealTile(Vector2Int pos)
         {
+            var tile = m_Grid.GetTile(pos);
+
+            if (tile.Landmark != null)
+            {
+                m_Grid.RevealTile(pos);
+                m_GridView.UpdateTile(pos, m_Grid.GetTile(pos));
+                return;
+            }
+
             var instance = m_Deck.Draw();
             if (instance == null) return;
 

@@ -24,8 +24,7 @@ namespace GreenPrince
                 m_TileViews[x, y] = view;
 
                 var tileState = model.GetTile(pos);
-                if (tileState.IsCamp)
-                    view.ShowCamp();
+                UpdateTile(pos, tileState);
             }
         }
 
@@ -41,13 +40,21 @@ namespace GreenPrince
 
             if (!tileState.IsRevealed)
             {
-                view.ShowUnrevealed();
+                if (tileState.IsExplored)
+                    view.ShowExploredFog(tileState.Terrain, tileState.Landmark);
+                else
+                    view.ShowUnexplored();
                 return;
             }
 
-            var def = m_Registry.Get(tileState.Card.DefinitionId) as TileDefinitionSO;
-            var state = tileState.Card.State as TileInstanceState;
-            view.ShowRevealed(def, state, tileState.IsVisited);
+            TileDefinitionSO def = null;
+            TileInstanceState state = null;
+            if (tileState.Card != null)
+            {
+                def = m_Registry.Get(tileState.Card.DefinitionId) as TileDefinitionSO;
+                state = tileState.Card.State as TileInstanceState;
+            }
+            view.ShowRevealed(def, state, tileState.IsVisited, tileState.Terrain, tileState.Landmark);
         }
 
         public Vector3 GridToWorld(Vector2Int gridPos)
@@ -71,10 +78,30 @@ namespace GreenPrince
 
             var tmp = labelGo.AddComponent<TextMeshPro>();
             tmp.alignment = TextAlignmentOptions.Center;
-            tmp.fontSize = 4f;
+            tmp.fontSize = 3f;
             tmp.sortingOrder = 1;
             tmp.rectTransform.sizeDelta = new Vector2(1f, 1f);
             tmp.color = Color.white;
+
+            var challengeGo = new GameObject("ChallengeIndicator");
+            challengeGo.transform.SetParent(go.transform);
+            challengeGo.transform.localPosition = new Vector3(-0.22f, 0.22f, 0f);
+
+            var challengeSr = challengeGo.AddComponent<SpriteRenderer>();
+            challengeSr.sprite = CreateSquareSprite();
+            challengeSr.sortingOrder = 2;
+            challengeGo.transform.localScale = new Vector3(0.5f, 0.5f, 1f);
+
+            var challengeLabelGo = new GameObject("ChallengeLabel");
+            challengeLabelGo.transform.SetParent(challengeGo.transform);
+            challengeLabelGo.transform.localPosition = Vector3.zero;
+
+            var challengeTmp = challengeLabelGo.AddComponent<TextMeshPro>();
+            challengeTmp.alignment = TextAlignmentOptions.Center;
+            challengeTmp.fontSize = 5f;
+            challengeTmp.sortingOrder = 3;
+            challengeTmp.rectTransform.sizeDelta = new Vector2(0.8f, 0.8f);
+            challengeTmp.color = Color.white;
 
             go.AddComponent<TileView>();
 

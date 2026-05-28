@@ -12,6 +12,7 @@ namespace GreenPrince
         public event Action PauseRequested;
         public event Action ResumeRequested;
         public event Action GiveUpRequested;
+        public event Action QuitRequested;
 
         GameObject m_Panel;
         GameObject m_FirstButton;
@@ -79,6 +80,14 @@ namespace GreenPrince
             GiveUpRequested?.Invoke();
         }
 
+        public void Quit()
+        {
+            m_IsOpen = false;
+            m_Panel.SetActive(false);
+            Time.timeScale = 1f;
+            QuitRequested?.Invoke();
+        }
+
         public void SetInteractable(bool interactable)
         {
             enabled = interactable;
@@ -108,6 +117,8 @@ namespace GreenPrince
             CreateLabel(panelGo.transform, "PAUSED", 64f);
             m_FirstButton = CreateButton(panelGo.transform, "Resume", Resume);
             CreateButton(panelGo.transform, "Give Up", GiveUp);
+            CreateButton(panelGo.transform, "Quit", Quit,
+                new Color(0.5f, 0.2f, 0.2f), new Color(0.7f, 0.3f, 0.3f));
 
             return panelGo;
         }
@@ -128,8 +139,12 @@ namespace GreenPrince
             tmp.color = Color.white;
         }
 
-        GameObject CreateButton(Transform parent, string label, Action onClick)
+        GameObject CreateButton(Transform parent, string label, Action onClick,
+            Color? normalColor = null, Color? highlightColor = null)
         {
+            var normal = normalColor ?? new Color(0.25f, 0.25f, 0.3f);
+            var highlight = highlightColor ?? new Color(0.4f, 0.4f, 0.5f);
+
             var go = new GameObject(label + "Button");
             go.transform.SetParent(parent, false);
 
@@ -137,16 +152,16 @@ namespace GreenPrince
             rect.sizeDelta = new Vector2(300f, 60f);
 
             var bg = go.AddComponent<Image>();
-            bg.color = new Color(0.25f, 0.25f, 0.3f);
+            bg.color = normal;
 
             var button = go.AddComponent<Button>();
             button.targetGraphic = bg;
 
             var colors = button.colors;
-            colors.normalColor = new Color(0.25f, 0.25f, 0.3f);
-            colors.highlightedColor = new Color(0.4f, 0.4f, 0.5f);
-            colors.selectedColor = new Color(0.4f, 0.4f, 0.5f);
-            colors.pressedColor = new Color(0.15f, 0.15f, 0.2f);
+            colors.normalColor = normal;
+            colors.highlightedColor = highlight;
+            colors.selectedColor = highlight;
+            colors.pressedColor = new Color(normal.r * 0.6f, normal.g * 0.6f, normal.b * 0.6f);
             colors.colorMultiplier = 1f;
             button.colors = colors;
 

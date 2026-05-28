@@ -9,5 +9,7 @@ namespace GreenPrince
         public bool IsRevealed { get; set; }
         public bool IsVisited { get; set; }
         public bool IsCamp { get; set; }
+        public bool IsExplored { get; set; }
+        public LandmarkData Landmark { get; set; }
     }
 }
