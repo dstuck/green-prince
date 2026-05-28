@@ -154,7 +154,13 @@ namespace GreenPrince
                 tile.IsExplored = true;
 
                 if (tile.Feature != null && tile.Feature.HasActiveChallenge)
+                {
                     tile.Feature.IsOvercome = true;
+                    GrantFeatureRewardsIfNeeded(tile.Feature);
+                }
+
+                if (!tile.IsCamp)
+                    CollectPickupsIfAny(target);
 
                 m_GridView.UpdateTile(target, tile);
             }
@@ -210,6 +216,23 @@ namespace GreenPrince
             m_Resources.Spend(costType, cost);
             m_HUD.FlashSpend(costType);
             return true;
+        }
+
+        void GrantFeatureRewardsIfNeeded(WorldFeature feature)
+        {
+            if (feature.RewardsGranted) return;
+            if (feature.Rewards == null || feature.Rewards.Count == 0) return;
+
+            foreach (var kvp in feature.Rewards)
+                WorldState.AddCampResource(kvp.Key, kvp.Value);
+
+            feature.RewardsGranted = true;
+        }
+
+        void CollectPickupsIfAny(Vector2Int pos)
+        {
+            if (WorldState.CollectPickupsAt(pos))
+                m_GridView.UpdateTile(pos, m_Grid.GetTile(pos));
         }
 
         static int GetEffectiveCost(TileDefinitionSO def, TileInstanceState state)

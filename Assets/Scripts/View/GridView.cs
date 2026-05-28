@@ -41,7 +41,7 @@ namespace GreenPrince
             if (!tileState.IsRevealed)
             {
                 if (tileState.IsExplored)
-                    view.ShowExploredFog(tileState.Terrain, tileState.Feature);
+                    view.ShowExploredFog(tileState.Terrain, tileState.Feature, tileState.Pickups);
                 else
                     view.ShowUnexplored();
                 return;
@@ -54,7 +54,7 @@ namespace GreenPrince
                 def = m_Registry.Get(tileState.Card.DefinitionId) as TileDefinitionSO;
                 state = tileState.Card.State as TileInstanceState;
             }
-            view.ShowRevealed(def, state, tileState.IsVisited, tileState.Terrain, tileState.Feature);
+            view.ShowRevealed(def, state, tileState.IsVisited, tileState.Terrain, tileState.Feature, tileState.Pickups);
         }
 
         public Vector3 GridToWorld(Vector2Int gridPos)
@@ -102,6 +102,26 @@ namespace GreenPrince
             challengeTmp.sortingOrder = 3;
             challengeTmp.rectTransform.sizeDelta = new Vector2(0.8f, 0.8f);
             challengeTmp.color = Color.white;
+
+            var pickupContainer = new GameObject("PickupContainer");
+            pickupContainer.transform.SetParent(go.transform);
+            pickupContainer.transform.localPosition = Vector3.zero;
+
+            for (int i = 0; i < 3; i++)
+            {
+                var pickupGo = new GameObject($"Pickup{i}");
+                pickupGo.transform.SetParent(pickupContainer.transform);
+                pickupGo.transform.localRotation = Quaternion.Euler(0f, 0f, 45f);
+                pickupGo.transform.localScale = new Vector3(0.22f, 0.22f, 1f);
+
+                float x = (i - 1) * 0.22f;
+                pickupGo.transform.localPosition = new Vector3(x, -0.28f, 0f);
+
+                var pickupSr = pickupGo.AddComponent<SpriteRenderer>();
+                pickupSr.sprite = CreateSquareSprite();
+                pickupSr.sortingOrder = 2;
+                pickupSr.enabled = false;
+            }
 
             go.AddComponent<TileView>();
 

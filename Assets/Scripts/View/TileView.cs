@@ -14,6 +14,7 @@ namespace GreenPrince
         TextMeshPro m_Label;
         SpriteRenderer m_ChallengeRenderer;
         TextMeshPro m_ChallengeLabel;
+        SpriteRenderer[] m_PickupRenderers;
 
         public Vector2Int GridPosition { get; private set; }
 
@@ -28,6 +29,9 @@ namespace GreenPrince
             m_ChallengeRenderer = challengeGo.GetComponent<SpriteRenderer>();
             m_ChallengeLabel = challengeGo.GetComponentInChildren<TextMeshPro>();
 
+            var pickupContainer = transform.Find("PickupContainer");
+            m_PickupRenderers = pickupContainer.GetComponentsInChildren<SpriteRenderer>(includeInactive: true);
+
             ShowUnexplored();
         }
 
@@ -36,12 +40,14 @@ namespace GreenPrince
             m_Renderer.color = UnexploredColor;
             m_Label.text = "";
             HideChallenge();
+            HidePickups();
         }
 
-        public void ShowExploredFog(TerrainType terrain, WorldFeature feature)
+        public void ShowExploredFog(TerrainType terrain, WorldFeature feature, System.Collections.Generic.List<WorldPickup> pickups)
         {
             m_Renderer.color = GetTerrainFogColor(terrain);
             HideChallenge();
+            ShowPickups(pickups);
 
             if (feature != null)
             {
@@ -60,12 +66,14 @@ namespace GreenPrince
             m_Renderer.color = CampColor;
             m_Label.text = "";
             HideChallenge();
+            HidePickups();
         }
 
         public void ShowRevealed(TileDefinitionSO definition, TileInstanceState state,
-            bool visited, TerrainType terrain, WorldFeature feature)
+            bool visited, TerrainType terrain, WorldFeature feature, System.Collections.Generic.List<WorldPickup> pickups)
         {
             m_Renderer.color = GetTerrainColor(terrain);
+            ShowPickups(pickups);
 
             if (feature != null)
             {
@@ -113,6 +121,33 @@ namespace GreenPrince
             m_ChallengeRenderer.enabled = false;
             m_ChallengeLabel.text = "";
             m_ChallengeLabel.enabled = false;
+        }
+
+        void ShowPickups(System.Collections.Generic.List<WorldPickup> pickups)
+        {
+            if (m_PickupRenderers == null || m_PickupRenderers.Length == 0) return;
+
+            for (int i = 0; i < m_PickupRenderers.Length; i++)
+                m_PickupRenderers[i].enabled = false;
+
+            if (pickups == null || pickups.Count == 0) return;
+
+            int shown = 0;
+            foreach (var p in pickups)
+            {
+                if (p == null || p.IsCollected) continue;
+                if (shown >= m_PickupRenderers.Length) break;
+                var sr = m_PickupRenderers[shown++];
+                sr.color = CampResourceColors.Get(p.Type);
+                sr.enabled = true;
+            }
+        }
+
+        void HidePickups()
+        {
+            if (m_PickupRenderers == null) return;
+            for (int i = 0; i < m_PickupRenderers.Length; i++)
+                m_PickupRenderers[i].enabled = false;
         }
 
         static Color GetFeatureAccentColor(WorldFeatureType type)

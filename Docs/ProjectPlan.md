@@ -16,10 +16,10 @@ After overcoming persistent challenges and identifying a new landmark, they must
 
 ## Resources
 
-Adventurers start their journey with food, force, and tools as core resources and will collect camp resources:
-technology: aligned with force and tools, improves camp capabilities
-experience: aligned with food and force, improves adventurers
-lore: aligned with food and tools, improves nature tiles
+Adventurers start their journey with food (yellow), force (red), and tools (blue) as core resources and will collect camp resources:
+technology (purple): aligned with force and tools, improves camp capabilities
+experience (orange): aligned with food and force, improves adventurers
+lore (green): aligned with food and tools, improves nature tiles
 
 ---
 
@@ -37,11 +37,11 @@ v0.2 - resources
 - [x] Add failure state when a resource runs out
 
 v0.3 - persistence
-- [ ] Add an underlaying terrain board that is populated on game start
-- [ ] Implement camp resources, for now these only show up when you click the camp in a pop up
-- [ ] Add 2 landmarks somewhere 6-9 and 12-15 squares out from camp
-- [ ] Separate handling of revealing the environment and challenges, previously explored tiles should have a lighter fog that shows the underlying terrain or landmark but show clearly that you haven't adventured there yet
-- [ ] Add a quit option in the pause menu to fully restart the game resetting persist elements
+- [x] Add an underlaying terrain board that is populated on game start
+- [x] Implement camp resources, for now these only show up when you click the camp in a pop up
+- [x] Add 2 landmarks somewhere 6-9 and 12-15 squares out from camp
+- [x] Separate handling of revealing the environment and challenges, previously explored tiles should have a lighter fog that shows the underlying terrain or landmark but show clearly that you haven't adventured there yet
+- [x] Add a quit option in the pause menu to fully restart the game resetting persist elements
 
 v0.4 - party
 - [ ] Select party member screen before adventure

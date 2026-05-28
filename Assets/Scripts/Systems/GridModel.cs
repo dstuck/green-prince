@@ -29,6 +29,7 @@ namespace GreenPrince
                 tile.Terrain = WorldState.GetTerrain(x, y);
                 tile.IsExplored = WorldState.IsExplored(x, y);
                 tile.Feature = WorldState.GetFeatureAt(new Vector2Int(x, y));
+                tile.Pickups = WorldState.GetPickupsAt(new Vector2Int(x, y));
                 m_Tiles[x, y] = tile;
             }
 

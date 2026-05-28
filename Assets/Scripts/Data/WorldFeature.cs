@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace GreenPrince
@@ -16,6 +17,9 @@ namespace GreenPrince
         public ResourceType ChallengeType { get; }
         public int ChallengeValue { get; }
         public bool IsOvercome { get; set; }
+        public bool RewardsGranted { get; set; }
+
+        public Dictionary<CampResourceType, int> Rewards { get; } = new();
 
         public bool HasActiveChallenge => ChallengeValue > 0 && !IsOvercome;
 

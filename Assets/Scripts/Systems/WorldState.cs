@@ -10,6 +10,7 @@ namespace GreenPrince
         static TerrainType[,] s_Terrain;
         static bool[,] s_Explored;
         static List<WorldFeature> s_Features;
+        static List<WorldPickup>[,] s_Pickups;
         static Dictionary<CampResourceType, int> s_CampResources;
 
         public static bool IsInitialized { get; private set; }
@@ -27,6 +28,7 @@ namespace GreenPrince
             s_Terrain = new TerrainType[width, height];
             s_Explored = new bool[width, height];
             s_Features = new List<WorldFeature>();
+            s_Pickups = new List<WorldPickup>[width, height];
 
             s_CampResources = new Dictionary<CampResourceType, int>();
             foreach (CampResourceType type in Enum.GetValues(typeof(CampResourceType)))
@@ -34,6 +36,7 @@ namespace GreenPrince
 
             var campPos = new Vector2Int(0, height / 2);
             PlaceFeatures(width, height, campPos, rng);
+            PlacePickups(width, height, campPos, rng);
             GenerateTerrain(campPos, rng);
             IsInitialized = true;
         }
@@ -43,6 +46,7 @@ namespace GreenPrince
             s_Terrain = null;
             s_Explored = null;
             s_Features = null;
+            s_Pickups = null;
             s_CampResources = null;
             IsInitialized = false;
         }
@@ -60,6 +64,27 @@ namespace GreenPrince
         public static void AddCampResource(CampResourceType type, int amount)
         {
             s_CampResources[type] += amount;
+        }
+
+        public static List<WorldPickup> GetPickupsAt(Vector2Int pos)
+        {
+            return s_Pickups[pos.x, pos.y];
+        }
+
+        public static bool CollectPickupsAt(Vector2Int pos)
+        {
+            var list = s_Pickups[pos.x, pos.y];
+            if (list == null || list.Count == 0) return false;
+
+            bool collectedAny = false;
+            foreach (var p in list)
+            {
+                if (p.IsCollected) continue;
+                p.IsCollected = true;
+                AddCampResource(p.Type, 1);
+                collectedAny = true;
+            }
+            return collectedAny;
         }
 
         public static WorldFeature GetFeatureAt(Vector2Int pos)
@@ -143,9 +168,13 @@ namespace GreenPrince
                     distanceRanges[i][0], distanceRanges[i][1], rng);
                 if (pos.HasValue)
                 {
-                    s_Features.Add(new WorldFeature(
+                    var feature = new WorldFeature(
                         pos.Value, names[i], WorldFeatureType.Landmark,
-                        ResourceType.Force, 3));
+                        ResourceType.Force, 3);
+                    feature.Rewards[CampResourceType.Technology] = 1;
+                    feature.Rewards[CampResourceType.Experience] = 1;
+                    feature.Rewards[CampResourceType.Lore] = 1;
+                    s_Features.Add(feature);
                 }
             }
         }
@@ -155,9 +184,55 @@ namespace GreenPrince
             var pos = PickPosition(width, height, campPos, 3, 6, rng);
             if (pos.HasValue)
             {
-                s_Features.Add(new WorldFeature(
+                var feature = new WorldFeature(
                     pos.Value, "Goblin Camp", WorldFeatureType.Hazard,
-                    ResourceType.Force, 2));
+                    ResourceType.Force, 2);
+                feature.Rewards[CampResourceType.Experience] = 1;
+                feature.Rewards[CampResourceType.Lore] = 1;
+                s_Features.Add(feature);
+            }
+        }
+
+        static void PlacePickups(int width, int height, Vector2Int campPos, IRandomSource rng)
+        {
+            // "First 9 rows" interpreted as first 9 columns out from camp.
+            int maxXExclusive = Mathf.Min(width, 9);
+
+            PlacePickupType(width, height, campPos, rng, CampResourceType.Lore, count: 3, maxXExclusive);
+            PlacePickupType(width, height, campPos, rng, CampResourceType.Experience, count: 2, maxXExclusive);
+        }
+
+        static void PlacePickupType(int width, int height, Vector2Int campPos, IRandomSource rng,
+            CampResourceType type, int count, int maxXExclusive)
+        {
+            int attempts = 0;
+            int placed = 0;
+            while (placed < count && attempts < 200)
+            {
+                attempts++;
+                int x = rng.Next(1, maxXExclusive); // skip camp column
+                int y = rng.Next(0, height);
+                var pos = new Vector2Int(x, y);
+
+                if (GetFeatureAt(pos) != null) continue;
+
+                var list = s_Pickups[x, y];
+                if (list == null)
+                {
+                    list = new List<WorldPickup>();
+                    s_Pickups[x, y] = list;
+                }
+
+                // allow stacking different types, but avoid duplicates of the same type
+                bool hasSame = false;
+                foreach (var p in list)
+                {
+                    if (p.Type == type) { hasSame = true; break; }
+                }
+                if (hasSame) continue;
+
+                list.Add(new WorldPickup(pos, type));
+                placed++;
             }
         }
 

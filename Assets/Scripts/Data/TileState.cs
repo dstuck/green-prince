@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CardFramework;
 
 namespace GreenPrince
@@ -11,5 +12,6 @@ namespace GreenPrince
         public bool IsCamp { get; set; }
         public bool IsExplored { get; set; }
         public WorldFeature Feature { get; set; }
+        public List<WorldPickup> Pickups { get; set; }
     }
 }
