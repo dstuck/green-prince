@@ -8,6 +8,7 @@ namespace GreenPrince
         static readonly Color UnexploredColor = new Color(0.15f, 0.15f, 0.2f);
         static readonly Color CampColor = new Color(0.9f, 0.75f, 0.3f);
         static readonly Color LandmarkColor = new Color(0.85f, 0.65f, 0.9f);
+        static readonly Color HazardColor = new Color(0.8f, 0.35f, 0.3f);
 
         SpriteRenderer m_Renderer;
         TextMeshPro m_Label;
@@ -37,16 +38,16 @@ namespace GreenPrince
             HideChallenge();
         }
 
-        public void ShowExploredFog(TerrainType terrain, LandmarkData landmark)
+        public void ShowExploredFog(TerrainType terrain, WorldFeature feature)
         {
             m_Renderer.color = GetTerrainFogColor(terrain);
             HideChallenge();
 
-            if (landmark != null)
+            if (feature != null)
             {
                 m_Label.text = "?";
                 m_Label.fontSize = 4f;
-                m_Label.color = LandmarkColor;
+                m_Label.color = GetFeatureAccentColor(feature.FeatureType);
             }
             else
             {
@@ -62,18 +63,20 @@ namespace GreenPrince
         }
 
         public void ShowRevealed(TileDefinitionSO definition, TileInstanceState state,
-            bool visited, TerrainType terrain, LandmarkData landmark)
+            bool visited, TerrainType terrain, WorldFeature feature)
         {
             m_Renderer.color = GetTerrainColor(terrain);
 
-            if (landmark != null)
+            if (feature != null)
             {
-                m_Label.text = landmark.Name;
+                m_Label.text = feature.Name;
                 m_Label.fontSize = 2.5f;
-                m_Label.color = visited ? new Color(1f, 1f, 1f, 0.5f) : Color.white;
+                m_Label.color = visited
+                    ? new Color(1f, 1f, 1f, 0.5f)
+                    : GetFeatureAccentColor(feature.FeatureType);
 
-                if (!visited && landmark.ChallengeValue > 0)
-                    ShowChallenge(ResourceColors.Get(landmark.ChallengeType), landmark.ChallengeValue);
+                if (!visited && feature.HasActiveChallenge)
+                    ShowChallenge(ResourceColors.Get(feature.ChallengeType), feature.ChallengeValue);
                 else
                     HideChallenge();
                 return;
@@ -110,6 +113,16 @@ namespace GreenPrince
             m_ChallengeRenderer.enabled = false;
             m_ChallengeLabel.text = "";
             m_ChallengeLabel.enabled = false;
+        }
+
+        static Color GetFeatureAccentColor(WorldFeatureType type)
+        {
+            return type switch
+            {
+                WorldFeatureType.Landmark => LandmarkColor,
+                WorldFeatureType.Hazard   => HazardColor,
+                _                         => Color.white,
+            };
         }
 
         static Color GetTerrainColor(TerrainType terrain)

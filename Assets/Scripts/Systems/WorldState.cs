@@ -9,14 +9,14 @@ namespace GreenPrince
     {
         static TerrainType[,] s_Terrain;
         static bool[,] s_Explored;
-        static List<LandmarkData> s_Landmarks;
+        static List<WorldFeature> s_Features;
         static Dictionary<CampResourceType, int> s_CampResources;
 
         public static bool IsInitialized { get; private set; }
         public static int Width { get; private set; }
         public static int Height { get; private set; }
 
-        public static IReadOnlyList<LandmarkData> Landmarks => s_Landmarks;
+        public static IReadOnlyList<WorldFeature> Features => s_Features;
 
         public static void Initialize(int width, int height, IRandomSource rng)
         {
@@ -26,14 +26,14 @@ namespace GreenPrince
             Height = height;
             s_Terrain = new TerrainType[width, height];
             s_Explored = new bool[width, height];
-            s_Landmarks = new List<LandmarkData>();
+            s_Features = new List<WorldFeature>();
 
             s_CampResources = new Dictionary<CampResourceType, int>();
             foreach (CampResourceType type in Enum.GetValues(typeof(CampResourceType)))
                 s_CampResources[type] = 0;
 
             var campPos = new Vector2Int(0, height / 2);
-            PlaceLandmarks(width, height, campPos, rng);
+            PlaceFeatures(width, height, campPos, rng);
             GenerateTerrain(campPos, rng);
             IsInitialized = true;
         }
@@ -42,7 +42,7 @@ namespace GreenPrince
         {
             s_Terrain = null;
             s_Explored = null;
-            s_Landmarks = null;
+            s_Features = null;
             s_CampResources = null;
             IsInitialized = false;
         }
@@ -62,12 +62,12 @@ namespace GreenPrince
             s_CampResources[type] += amount;
         }
 
-        public static LandmarkData GetLandmarkAt(Vector2Int pos)
+        public static WorldFeature GetFeatureAt(Vector2Int pos)
         {
-            foreach (var lm in s_Landmarks)
+            foreach (var f in s_Features)
             {
-                if (lm.Position == pos)
-                    return lm;
+                if (f.Position == pos)
+                    return f;
             }
             return null;
         }
@@ -78,8 +78,9 @@ namespace GreenPrince
             for (int y = 0; y < Height; y++)
                 s_Terrain[x, y] = TerrainType.Forest;
 
-            if (s_Landmarks.Count > 0)
-                CarvePath(campPos, s_Landmarks[0].Position, rng);
+            var firstLandmark = FindFirstFeature(WorldFeatureType.Landmark);
+            if (firstLandmark != null)
+                CarvePath(campPos, firstLandmark.Position, rng);
 
             int pondCount = (Width * Height) / 18;
             for (int i = 0; i < pondCount; i++)
@@ -89,6 +90,16 @@ namespace GreenPrince
                 if (s_Terrain[px, py] == TerrainType.Forest)
                     s_Terrain[px, py] = TerrainType.River;
             }
+        }
+
+        static WorldFeature FindFirstFeature(WorldFeatureType type)
+        {
+            foreach (var f in s_Features)
+            {
+                if (f.FeatureType == type)
+                    return f;
+            }
+            return null;
         }
 
         static void CarvePath(Vector2Int from, Vector2Int to, IRandomSource rng)
@@ -115,6 +126,12 @@ namespace GreenPrince
             s_Terrain[to.x, to.y] = TerrainType.Mountain;
         }
 
+        static void PlaceFeatures(int width, int height, Vector2Int campPos, IRandomSource rng)
+        {
+            PlaceLandmarks(width, height, campPos, rng);
+            PlaceHazards(width, height, campPos, rng);
+        }
+
         static void PlaceLandmarks(int width, int height, Vector2Int campPos, IRandomSource rng)
         {
             int[][] distanceRanges = { new[] { 6, 9 }, new[] { 12, 15 } };
@@ -122,25 +139,43 @@ namespace GreenPrince
 
             for (int i = 0; i < 2; i++)
             {
-                int minDist = distanceRanges[i][0];
-                int maxDist = distanceRanges[i][1];
-
-                var candidates = new List<Vector2Int>();
-                for (int x = 0; x < width; x++)
-                for (int y = 0; y < height; y++)
+                var pos = PickPosition(width, height, campPos,
+                    distanceRanges[i][0], distanceRanges[i][1], rng);
+                if (pos.HasValue)
                 {
-                    int dist = Mathf.Abs(x - campPos.x) + Mathf.Abs(y - campPos.y);
-                    if (dist >= minDist && dist <= maxDist)
-                        candidates.Add(new Vector2Int(x, y));
-                }
-
-                if (candidates.Count > 0)
-                {
-                    int idx = rng.Next(0, candidates.Count);
-                    s_Landmarks.Add(new LandmarkData(
-                        candidates[idx], names[i], ResourceType.Force, 2));
+                    s_Features.Add(new WorldFeature(
+                        pos.Value, names[i], WorldFeatureType.Landmark,
+                        ResourceType.Force, 3));
                 }
             }
+        }
+
+        static void PlaceHazards(int width, int height, Vector2Int campPos, IRandomSource rng)
+        {
+            var pos = PickPosition(width, height, campPos, 3, 6, rng);
+            if (pos.HasValue)
+            {
+                s_Features.Add(new WorldFeature(
+                    pos.Value, "Goblin Camp", WorldFeatureType.Hazard,
+                    ResourceType.Force, 2));
+            }
+        }
+
+        static Vector2Int? PickPosition(int width, int height, Vector2Int campPos,
+            int minDist, int maxDist, IRandomSource rng)
+        {
+            var candidates = new List<Vector2Int>();
+            for (int x = 0; x < width; x++)
+            for (int y = 0; y < height; y++)
+            {
+                var pos = new Vector2Int(x, y);
+                int dist = Mathf.Abs(x - campPos.x) + Mathf.Abs(y - campPos.y);
+                if (dist >= minDist && dist <= maxDist && GetFeatureAt(pos) == null)
+                    candidates.Add(pos);
+            }
+
+            if (candidates.Count == 0) return null;
+            return candidates[rng.Next(0, candidates.Count)];
         }
     }
 }

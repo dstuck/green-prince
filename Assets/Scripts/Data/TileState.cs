@@ -10,6 +10,6 @@ namespace GreenPrince
         public bool IsVisited { get; set; }
         public bool IsCamp { get; set; }
         public bool IsExplored { get; set; }
-        public LandmarkData Landmark { get; set; }
+        public WorldFeature Feature { get; set; }
     }
 }

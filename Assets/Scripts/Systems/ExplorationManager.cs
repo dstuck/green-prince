@@ -101,6 +101,7 @@ namespace GreenPrince
         {
             var campGo = new GameObject("CampPopup");
             m_CampPopup = campGo.AddComponent<CampPopup>();
+            m_CampPopup.SetCampPosition(m_GridView.GridToWorld(m_Grid.CampPosition));
         }
 
         void OnPauseRequested()
@@ -136,66 +137,25 @@ namespace GreenPrince
 
             var tile = m_Grid.GetTile(target);
 
-            if (tile.IsCamp)
-            {
-                var worldPos = m_GridView.GridToWorld(target);
-                m_PartyToken.MoveTo(target, worldPos);
-                m_CampPopup.Show();
-                return;
-            }
-
-            if (!m_Grid.IsRevealed(target))
+            if (!tile.IsCamp && !m_Grid.IsRevealed(target))
                 RevealTile(target);
 
             tile = m_Grid.GetTile(target);
 
             if (!tile.IsVisited)
             {
-                ResourceType costType;
-                int cost;
-
-                if (tile.Landmark != null)
-                {
-                    costType = tile.Landmark.ChallengeType;
-                    cost = tile.Landmark.ChallengeValue;
-                }
-                else if (tile.Card != null)
-                {
-                    var def = m_Registry.Get(tile.Card.DefinitionId) as TileDefinitionSO;
-                    if (def != null)
-                    {
-                        costType = def.ResourceType;
-                        cost = GetEffectiveCost(def, tile.Card.State as TileInstanceState);
-                    }
-                    else
-                    {
-                        costType = ResourceType.Food;
-                        cost = 0;
-                    }
-                }
-                else
-                {
-                    costType = ResourceType.Food;
-                    cost = 0;
-                }
-
-                if (cost > 0 && !m_Resources.CanAfford(costType, cost))
-                {
-                    m_HUD.FlashInsufficient(costType);
+                if (!TryPayTileCost(tile))
                     return;
-                }
-
-                if (cost > 0)
-                {
-                    m_Resources.Spend(costType, cost);
-                    m_HUD.FlashSpend(costType);
-                }
             }
 
             if (!tile.IsVisited)
             {
                 tile.IsVisited = true;
                 tile.IsExplored = true;
+
+                if (tile.Feature != null && tile.Feature.HasActiveChallenge)
+                    tile.Feature.IsOvercome = true;
+
                 m_GridView.UpdateTile(target, tile);
             }
 
@@ -209,6 +169,47 @@ namespace GreenPrince
                 m_HUD.FlashSpend(ResourceType.Food);
             if (!survived)
                 TriggerGameOver();
+        }
+
+        bool TryPayTileCost(TileState tile)
+        {
+            ResourceType costType;
+            int cost;
+
+            if (tile.Feature != null && tile.Feature.HasActiveChallenge)
+            {
+                costType = tile.Feature.ChallengeType;
+                cost = tile.Feature.ChallengeValue;
+            }
+            else if (tile.Card != null)
+            {
+                var def = m_Registry.Get(tile.Card.DefinitionId) as TileDefinitionSO;
+                if (def != null)
+                {
+                    costType = def.ResourceType;
+                    cost = GetEffectiveCost(def, tile.Card.State as TileInstanceState);
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                return true;
+            }
+
+            if (cost <= 0) return true;
+
+            if (!m_Resources.CanAfford(costType, cost))
+            {
+                m_HUD.FlashInsufficient(costType);
+                return false;
+            }
+
+            m_Resources.Spend(costType, cost);
+            m_HUD.FlashSpend(costType);
+            return true;
         }
 
         static int GetEffectiveCost(TileDefinitionSO def, TileInstanceState state)
@@ -237,7 +238,7 @@ namespace GreenPrince
         {
             var tile = m_Grid.GetTile(pos);
 
-            if (tile.Landmark != null)
+            if (tile.Feature != null)
             {
                 m_Grid.RevealTile(pos);
                 m_GridView.UpdateTile(pos, m_Grid.GetTile(pos));

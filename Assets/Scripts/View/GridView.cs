@@ -41,7 +41,7 @@ namespace GreenPrince
             if (!tileState.IsRevealed)
             {
                 if (tileState.IsExplored)
-                    view.ShowExploredFog(tileState.Terrain, tileState.Landmark);
+                    view.ShowExploredFog(tileState.Terrain, tileState.Feature);
                 else
                     view.ShowUnexplored();
                 return;
@@ -54,7 +54,7 @@ namespace GreenPrince
                 def = m_Registry.Get(tileState.Card.DefinitionId) as TileDefinitionSO;
                 state = tileState.Card.State as TileInstanceState;
             }
-            view.ShowRevealed(def, state, tileState.IsVisited, tileState.Terrain, tileState.Landmark);
+            view.ShowRevealed(def, state, tileState.IsVisited, tileState.Terrain, tileState.Feature);
         }
 
         public Vector3 GridToWorld(Vector2Int gridPos)

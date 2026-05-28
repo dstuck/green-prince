@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace GreenPrince
@@ -20,6 +21,13 @@ namespace GreenPrince
 
         GameObject m_Panel;
         readonly Dictionary<CampResourceType, TextMeshProUGUI> m_Labels = new();
+        Vector3 m_CampWorldPos;
+        Camera m_Camera;
+
+        public void SetCampPosition(Vector3 worldPos)
+        {
+            m_CampWorldPos = worldPos;
+        }
 
         void Awake()
         {
@@ -37,27 +45,39 @@ namespace GreenPrince
             m_Panel.SetActive(false);
         }
 
-        public void Show()
-        {
-            Refresh();
-            m_Panel.SetActive(true);
-        }
-
-        public void Hide()
-        {
-            m_Panel.SetActive(false);
-        }
-
         void Update()
         {
-            if (!m_Panel.activeSelf) return;
+            if (m_Camera == null)
+                m_Camera = Camera.main;
 
-            if (UnityEngine.InputSystem.Keyboard.current != null
-                && (UnityEngine.InputSystem.Keyboard.current.escapeKey.wasPressedThisFrame
-                    || UnityEngine.InputSystem.Keyboard.current.spaceKey.wasPressedThisFrame))
+            bool shouldShow = IsShiftHeld() || IsMouseOverCamp();
+
+            if (shouldShow && !m_Panel.activeSelf)
             {
-                Hide();
+                Refresh();
+                m_Panel.SetActive(true);
             }
+            else if (!shouldShow && m_Panel.activeSelf)
+            {
+                m_Panel.SetActive(false);
+            }
+        }
+
+        bool IsShiftHeld()
+        {
+            var kb = Keyboard.current;
+            return kb != null && kb.leftShiftKey.isPressed;
+        }
+
+        bool IsMouseOverCamp()
+        {
+            if (m_Camera == null) return false;
+
+            var mousePos = Mouse.current?.position.ReadValue() ?? Vector2.zero;
+            var worldPos = m_Camera.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, 0f));
+
+            return Mathf.Abs(worldPos.x - m_CampWorldPos.x) < 0.5f
+                && Mathf.Abs(worldPos.y - m_CampWorldPos.y) < 0.5f;
         }
 
         void Refresh()
@@ -102,9 +122,6 @@ namespace GreenPrince
                 var label = CreateLabel(panelGo.transform, $"{type}: 0", 26f, color, FontStyles.Bold);
                 m_Labels[type] = label;
             }
-
-            CreateLabel(panelGo.transform, "(press Esc or Space to close)", 18f,
-                new Color(0.5f, 0.5f, 0.5f), FontStyles.Italic);
 
             return panelGo;
         }
