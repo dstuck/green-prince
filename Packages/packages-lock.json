@@ -11,10 +11,11 @@
       "hash": "417cf351a152b483c91e6e2deaf7ae355fa8eff3"
     },
     "com.dstuck.card-framework": {
-      "version": "file:com.dstuck.card-framework",
+      "version": "https://github.com/dstuck/unity-card-framework.git#main",
       "depth": 0,
-      "source": "embedded",
-      "dependencies": {}
+      "source": "git",
+      "dependencies": {},
+      "hash": "f5b5852e5baa7ef38bc72b93e36e45900980881b"
     },
     "com.unity.2d.animation": {
       "version": "10.2.2",
