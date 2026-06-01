@@ -13,6 +13,7 @@ namespace GreenPrince
     {
         public Vector2Int Position { get; }
         public string Name { get; }
+        public WorldFeatureKind Kind { get; }
         public WorldFeatureType FeatureType { get; }
         public ResourceType ChallengeType { get; }
         public int ChallengeValue { get; }
@@ -23,11 +24,12 @@ namespace GreenPrince
 
         public bool HasActiveChallenge => ChallengeValue > 0 && !IsOvercome;
 
-        public WorldFeature(Vector2Int position, string name, WorldFeatureType featureType,
-            ResourceType challengeType, int challengeValue)
+        public WorldFeature(Vector2Int position, string name, WorldFeatureKind kind,
+            WorldFeatureType featureType, ResourceType challengeType, int challengeValue)
         {
             Position = position;
             Name = name;
+            Kind = kind;
             FeatureType = featureType;
             ChallengeType = challengeType;
             ChallengeValue = challengeValue;

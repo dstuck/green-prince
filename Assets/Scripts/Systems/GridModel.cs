@@ -53,6 +53,7 @@ namespace GreenPrince
             var tile = m_Tiles[pos.x, pos.y];
             tile.Card = card;
             tile.IsRevealed = true;
+            tile.IsExplored = true;
             WorldState.MarkExplored(pos.x, pos.y);
         }
 
@@ -69,6 +70,33 @@ namespace GreenPrince
                 var adj = pos + dir;
                 if (IsInBounds(adj) && !IsRevealed(adj))
                     results.Add(adj);
+            }
+
+            return results;
+        }
+
+        /// <summary>
+        /// Unrevealed, non-camp tiles within Manhattan distance (crosswalk).
+        /// </summary>
+        public List<Vector2Int> GetUnrevealedWithinManhattanDistance(Vector2Int center, int maxDistance)
+        {
+            var results = new List<Vector2Int>();
+
+            for (int dx = -maxDistance; dx <= maxDistance; dx++)
+            for (int dy = -maxDistance; dy <= maxDistance; dy++)
+            {
+                if (Mathf.Abs(dx) + Mathf.Abs(dy) > maxDistance)
+                    continue;
+
+                var pos = center + new Vector2Int(dx, dy);
+                if (!IsInBounds(pos))
+                    continue;
+
+                var tile = m_Tiles[pos.x, pos.y];
+                if (tile.IsCamp || tile.IsRevealed)
+                    continue;
+
+                results.Add(pos);
             }
 
             return results;

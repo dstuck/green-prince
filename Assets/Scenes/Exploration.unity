@@ -150,7 +150,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_GridWidth: 20
   m_GridHeight: 7
-  m_LandRecipe: {fileID: 11400000, guid: 4b31323707f1b442eba78290ba4f6e12, type: 2}
+  m_StartFood: 10
+  m_StartForce: 5
+  m_StartTools: 4
+  m_FoodInterval: 5
+  m_ForestRecipe: {fileID: 11400000, guid: 4b31323707f1b442eba78290ba4f6e12, type: 2}
   m_TileDefinitions:
   - {fileID: 11400000, guid: 1e9e9f7d7dbca4b8abf0c791974cb6ae, type: 2}
   - {fileID: 11400000, guid: f2e897b0baa2d4fbba05b3dada23e1f4, type: 2}
@@ -161,6 +165,15 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ec24f61e8278c441a8c8526174ffb805, type: 2}
   - {fileID: 11400000, guid: 8bb1c560d55e14f38b0b8ff4d83b0f5e, type: 2}
   - {fileID: 11400000, guid: f4df33f276bd949cab5fc281781213bb, type: 2}
+  - {fileID: 11400000, guid: bf80a50ddc53c42d7bba62ac8276c5bc, type: 2}
+  - {fileID: 11400000, guid: 6ffd5a0b2bd4e47c6931db9945cb9919, type: 2}
+  - {fileID: 11400000, guid: b34a07536ea4143d1a77b2fd20807249, type: 2}
+  - {fileID: 11400000, guid: 2b200b9d1fb9646dabb91b690abe6794, type: 2}
+  - {fileID: 11400000, guid: 4927eaeac7d864db0ae3e236333aac50, type: 2}
+  - {fileID: 11400000, guid: 19e5da15aa1854a8481076363439ce97, type: 2}
+  - {fileID: 11400000, guid: 3ae4959cb37014d3489356c530a0a939, type: 2}
+  m_HelpfulGoblinTile: {fileID: 11400000, guid: bf80a50ddc53c42d7bba62ac8276c5bc, type: 2}
+  m_ShopCatalog: {fileID: 11400000, guid: c411b3cfcb4b444668eacdece05274df, type: 2}
   m_PartyToken: {fileID: 1457951040}
   m_GridView: {fileID: 149540319}
 --- !u!4 &28255316

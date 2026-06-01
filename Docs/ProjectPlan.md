@@ -43,12 +43,17 @@ v0.3 - persistence
 - [x] Separate handling of revealing the environment and challenges, previously explored tiles should have a lighter fog that shows the underlying terrain or landmark but show clearly that you haven't adventured there yet
 - [x] Add a quit option in the pause menu to fully restart the game resetting persist elements
 
-v0.4 - party
-- [ ] Select party member screen before adventure
-- [ ] 4 party members with abilities that affect drawn tiles (reduce damage by one, find food in green tiles)
-- [ ] Placed tiles get modified by party before showing up on map
+v0.4 - card buying
+- [x] Add camp cards purchaseable between rounds
+- [x] Cards are shuffled into the deck at the start of the adventure
+- [x] Implement hierarchy of cards (random or deterministic)
 
 v0.5 - camp
 - [ ] Adventurers left at camp modify resource gain at camp 
 - [ ] Collect camp resources as you explore
 - [ ] Camp resources improve adventurers and modify map tiles
+
+v1.X - party
+- [ ] Select party member screen before adventure
+- [ ] 4 party members with abilities that affect drawn tiles (reduce damage by one, find food in green tiles)
+- [ ] Placed tiles get modified by party before showing up on map

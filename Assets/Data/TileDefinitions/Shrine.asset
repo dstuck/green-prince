@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f15d4c8ab1d84461b574048f7559e1a, type: 3}
+  m_Name: Shrine
+  m_EditorClassIdentifier: 
+  m_DefinitionId: tile.shrine
+  m_DisplayName: Shrine of the Wanderer
+  m_Presentation:
+    m_WorldSprite: {fileID: 0}
+    m_UISprite: {fileID: 0}
+  m_ResourceType: 0
+  m_ChallengeValue: 2
+  m_TileDisplayName: Shrine of the Wanderer
+  m_IconType: 0
+  m_RewardType: 0
+  m_RewardAmount: 0

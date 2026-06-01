@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea317c3ee3a74429fb10c499478a5d35, type: 3}
+  m_Name: CampCard_TinkerBag_T2
+  m_EditorClassIdentifier: 
+  m_ShopLabel: Tinker's Bag
+  m_DisplayName: Tinker's Bag
+  m_Description: "Place a Tinker's Bag tile (1 Tool to clear). Grants Tinkerer 1
+    \u2014 Tool costs on challenges are reduced by 1."
+  m_TileToAdd: {fileID: 11400000, guid: 2b200b9d1fb9646dabb91b690abe6794, type: 2}
+  m_CostTechnology: 2
+  m_CostExperience: 0
+  m_CostLore: 0
+  m_NextTier: {fileID: 0}

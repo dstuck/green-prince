@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea317c3ee3a74429fb10c499478a5d35, type: 3}
+  m_Name: CampCard_Masks_T1
+  m_EditorClassIdentifier: 
+  m_ShopLabel: Stash
+  m_DisplayName: Guarded Stash
+  m_Description: Place a Guarded Stash tile (2 Force to clear). Gain 3 Force when
+    defeated.
+  m_TileToAdd: {fileID: 11400000, guid: 4927eaeac7d864db0ae3e236333aac50, type: 2}
+  m_CostTechnology: 0
+  m_CostExperience: 1
+  m_CostLore: 0
+  m_NextTier: {fileID: 11400000, guid: b1fd97c56da1e4240b628d66a396e7f4, type: 2}

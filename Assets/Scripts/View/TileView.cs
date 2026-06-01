@@ -14,6 +14,9 @@ namespace GreenPrince
         TextMeshPro m_Label;
         SpriteRenderer m_ChallengeRenderer;
         TextMeshPro m_ChallengeLabel;
+        SpriteRenderer m_BenefitRenderer;
+        TextMeshPro m_BenefitLabel;
+        SpriteRenderer m_IconRenderer;
         SpriteRenderer[] m_PickupRenderers;
 
         public Vector2Int GridPosition { get; private set; }
@@ -29,6 +32,12 @@ namespace GreenPrince
             m_ChallengeRenderer = challengeGo.GetComponent<SpriteRenderer>();
             m_ChallengeLabel = challengeGo.GetComponentInChildren<TextMeshPro>();
 
+            var benefitGo = transform.Find("BenefitIndicator");
+            m_BenefitRenderer = benefitGo.GetComponent<SpriteRenderer>();
+            m_BenefitLabel = benefitGo.GetComponentInChildren<TextMeshPro>();
+
+            m_IconRenderer = transform.Find("TileIcon").GetComponent<SpriteRenderer>();
+
             var pickupContainer = transform.Find("PickupContainer");
             m_PickupRenderers = pickupContainer.GetComponentsInChildren<SpriteRenderer>(includeInactive: true);
 
@@ -40,13 +49,18 @@ namespace GreenPrince
             m_Renderer.color = UnexploredColor;
             m_Label.text = "";
             HideChallenge();
+            HideBenefit();
+            HideIcon();
             HidePickups();
         }
 
-        public void ShowExploredFog(TerrainType terrain, WorldFeature feature, System.Collections.Generic.List<WorldPickup> pickups)
+        public void ShowExploredFog(TerrainType terrain, WorldFeature feature,
+            System.Collections.Generic.List<WorldPickup> pickups)
         {
             m_Renderer.color = GetTerrainFogColor(terrain);
             HideChallenge();
+            HideBenefit();
+            HideIcon();
             ShowPickups(pickups);
 
             if (feature != null)
@@ -66,14 +80,18 @@ namespace GreenPrince
             m_Renderer.color = CampColor;
             m_Label.text = "";
             HideChallenge();
+            HideBenefit();
+            HideIcon();
             HidePickups();
         }
 
         public void ShowRevealed(TileDefinitionSO definition, TileInstanceState state,
-            bool visited, TerrainType terrain, WorldFeature feature, System.Collections.Generic.List<WorldPickup> pickups)
+            bool visited, TerrainType terrain, WorldFeature feature,
+            System.Collections.Generic.List<WorldPickup> pickups)
         {
             m_Renderer.color = GetTerrainColor(terrain);
             ShowPickups(pickups);
+            HideIcon();
 
             if (feature != null)
             {
@@ -87,14 +105,21 @@ namespace GreenPrince
                     ShowChallenge(ResourceColors.Get(feature.ChallengeType), feature.ChallengeValue);
                 else
                     HideChallenge();
+                HideBenefit();
                 return;
             }
 
-            m_Label.text = "";
+            if (definition != null && definition.DisplayIconType != TileIconType.None)
+                ShowIcon(definition.DisplayIconType);
+
+            m_Label.text = definition != null && definition.ShowTileLabel
+                ? definition.BoardDisplayName
+                : "";
 
             if (visited || definition == null)
             {
                 HideChallenge();
+                HideBenefit();
                 return;
             }
 
@@ -106,13 +131,18 @@ namespace GreenPrince
                 ShowChallenge(ResourceColors.Get(definition.ResourceType), value);
             else
                 HideChallenge();
+
+            if (definition.HasReward)
+                ShowBenefit(ResourceColors.Get(definition.RewardType), definition.RewardAmount);
+            else
+                HideBenefit();
         }
 
         void ShowChallenge(Color color, int value)
         {
             m_ChallengeRenderer.enabled = true;
             m_ChallengeRenderer.color = color;
-            m_ChallengeLabel.text = value.ToString();
+            m_ChallengeLabel.text = $"-{value}";
             m_ChallengeLabel.enabled = true;
         }
 
@@ -121,6 +151,34 @@ namespace GreenPrince
             m_ChallengeRenderer.enabled = false;
             m_ChallengeLabel.text = "";
             m_ChallengeLabel.enabled = false;
+        }
+
+        void ShowBenefit(Color color, int value)
+        {
+            m_BenefitRenderer.enabled = true;
+            m_BenefitRenderer.color = color;
+            m_BenefitLabel.text = $"+{value}";
+            m_BenefitLabel.enabled = true;
+        }
+
+        void HideBenefit()
+        {
+            m_BenefitRenderer.enabled = false;
+            m_BenefitLabel.text = "";
+            m_BenefitLabel.enabled = false;
+        }
+
+        void ShowIcon(TileIconType iconType)
+        {
+            var sprite = TileIconSprites.Get(iconType);
+            if (sprite == null) return;
+            m_IconRenderer.sprite = sprite;
+            m_IconRenderer.enabled = true;
+        }
+
+        void HideIcon()
+        {
+            m_IconRenderer.enabled = false;
         }
 
         void ShowPickups(System.Collections.Generic.List<WorldPickup> pickups)

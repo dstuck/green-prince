@@ -37,6 +37,13 @@ namespace GreenPrince
             Changed?.Invoke();
         }
 
+        public void Gain(ResourceType type, int amount)
+        {
+            if (amount <= 0) return;
+            m_Values[type] += amount;
+            Changed?.Invoke();
+        }
+
         /// <summary>
         /// Records a step taken. Every <paramref name="foodInterval"/> steps,
         /// consumes 1 food. Returns false if food was 0 when consumption was due
