@@ -98,10 +98,38 @@ namespace GreenPrince
 
             var challengeTmp = challengeLabelGo.AddComponent<TextMeshPro>();
             challengeTmp.alignment = TextAlignmentOptions.Center;
-            challengeTmp.fontSize = 5f;
+            challengeTmp.fontSize = 4f;
             challengeTmp.sortingOrder = 3;
             challengeTmp.rectTransform.sizeDelta = new Vector2(0.8f, 0.8f);
             challengeTmp.color = Color.white;
+
+            var benefitGo = new GameObject("BenefitIndicator");
+            benefitGo.transform.SetParent(go.transform);
+            benefitGo.transform.localPosition = new Vector3(0.22f, 0.22f, 0f);
+
+            var benefitSr = benefitGo.AddComponent<SpriteRenderer>();
+            benefitSr.sprite = CreateSquareSprite();
+            benefitSr.sortingOrder = 2;
+            benefitGo.transform.localScale = new Vector3(0.5f, 0.5f, 1f);
+
+            var benefitLabelGo = new GameObject("BenefitLabel");
+            benefitLabelGo.transform.SetParent(benefitGo.transform);
+            benefitLabelGo.transform.localPosition = Vector3.zero;
+
+            var benefitTmp = benefitLabelGo.AddComponent<TextMeshPro>();
+            benefitTmp.alignment = TextAlignmentOptions.Center;
+            benefitTmp.fontSize = 4f;
+            benefitTmp.sortingOrder = 3;
+            benefitTmp.rectTransform.sizeDelta = new Vector2(0.8f, 0.8f);
+            benefitTmp.color = Color.white;
+
+            var iconGo = new GameObject("TileIcon");
+            iconGo.transform.SetParent(go.transform);
+            iconGo.transform.localPosition = new Vector3(0f, -0.05f, 0f);
+            iconGo.transform.localScale = new Vector3(0.45f, 0.45f, 1f);
+            var iconSr = iconGo.AddComponent<SpriteRenderer>();
+            iconSr.sortingOrder = 2;
+            iconSr.enabled = false;
 
             var pickupContainer = new GameObject("PickupContainer");
             pickupContainer.transform.SetParent(go.transform);

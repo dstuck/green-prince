@@ -12,12 +12,20 @@ namespace GreenPrince
         static List<WorldFeature> s_Features;
         static List<WorldPickup>[,] s_Pickups;
         static Dictionary<CampResourceType, int> s_CampResources;
+        static List<CardDefinitionId> s_CampCardIds;
+        static HashSet<CardDefinitionId> s_ForestUnlocks;
+        static int[] s_ShopChainProgress;
+
+        const int PickupMinDistance = 3;
+        const int PickupMaxDistance = 8;
 
         public static bool IsInitialized { get; private set; }
         public static int Width { get; private set; }
         public static int Height { get; private set; }
 
         public static IReadOnlyList<WorldFeature> Features => s_Features;
+        public static IReadOnlyList<CardDefinitionId> CampCardIds => s_CampCardIds;
+        public static IReadOnlyCollection<CardDefinitionId> ForestUnlocks => s_ForestUnlocks;
 
         public static void Initialize(int width, int height, IRandomSource rng)
         {
@@ -30,9 +38,19 @@ namespace GreenPrince
             s_Features = new List<WorldFeature>();
             s_Pickups = new List<WorldPickup>[width, height];
 
-            s_CampResources = new Dictionary<CampResourceType, int>();
-            foreach (CampResourceType type in Enum.GetValues(typeof(CampResourceType)))
-                s_CampResources[type] = 0;
+            if (s_CampResources == null)
+            {
+                s_CampResources = new Dictionary<CampResourceType, int>();
+                foreach (CampResourceType type in Enum.GetValues(typeof(CampResourceType)))
+                    s_CampResources[type] = 0;
+            }
+
+            if (s_CampCardIds == null)
+                s_CampCardIds = new List<CardDefinitionId>();
+            if (s_ForestUnlocks == null)
+                s_ForestUnlocks = new HashSet<CardDefinitionId>();
+            if (s_ShopChainProgress == null)
+                s_ShopChainProgress = Array.Empty<int>();
 
             var campPos = new Vector2Int(0, height / 2);
             PlaceFeatures(width, height, campPos, rng);
@@ -48,8 +66,54 @@ namespace GreenPrince
             s_Features = null;
             s_Pickups = null;
             s_CampResources = null;
+            s_CampCardIds = null;
+            s_ForestUnlocks = null;
+            s_ShopChainProgress = null;
             IsInitialized = false;
         }
+
+        public static void EnsureShopChains(int chainCount)
+        {
+            if (s_ShopChainProgress == null || s_ShopChainProgress.Length != chainCount)
+            {
+                var next = new int[chainCount];
+                if (s_ShopChainProgress != null)
+                {
+                    int copy = Math.Min(s_ShopChainProgress.Length, chainCount);
+                    Array.Copy(s_ShopChainProgress, next, copy);
+                }
+                s_ShopChainProgress = next;
+            }
+        }
+
+        public static int GetShopChainProgress(int chainIndex)
+        {
+            if (s_ShopChainProgress == null || chainIndex < 0 || chainIndex >= s_ShopChainProgress.Length)
+                return 0;
+            return s_ShopChainProgress[chainIndex];
+        }
+
+        public static void AdvanceShopChain(int chainIndex)
+        {
+            if (s_ShopChainProgress == null || chainIndex < 0 || chainIndex >= s_ShopChainProgress.Length)
+                return;
+            s_ShopChainProgress[chainIndex]++;
+        }
+
+        public static void AddCampCard(CardDefinitionId id)
+        {
+            s_CampCardIds ??= new List<CardDefinitionId>();
+            s_CampCardIds.Add(id);
+        }
+
+        public static void UnlockForestCard(CardDefinitionId id)
+        {
+            s_ForestUnlocks ??= new HashSet<CardDefinitionId>();
+            s_ForestUnlocks.Add(id);
+        }
+
+        public static bool IsForestUnlocked(CardDefinitionId id) =>
+            s_ForestUnlocks != null && s_ForestUnlocks.Contains(id);
 
         public static TerrainType GetTerrain(int x, int y) => s_Terrain[x, y];
         public static bool IsExplored(int x, int y) => s_Explored[x, y];
@@ -103,7 +167,7 @@ namespace GreenPrince
             for (int y = 0; y < Height; y++)
                 s_Terrain[x, y] = TerrainType.Forest;
 
-            var firstLandmark = FindFirstFeature(WorldFeatureType.Landmark);
+            var firstLandmark = FindFeature(WorldFeatureKind.FirstLandmark);
             if (firstLandmark != null)
                 CarvePath(campPos, firstLandmark.Position, rng);
 
@@ -117,11 +181,11 @@ namespace GreenPrince
             }
         }
 
-        static WorldFeature FindFirstFeature(WorldFeatureType type)
+        static WorldFeature FindFeature(WorldFeatureKind kind)
         {
             foreach (var f in s_Features)
             {
-                if (f.FeatureType == type)
+                if (f.Kind == kind)
                     return f;
             }
             return null;
@@ -161,6 +225,7 @@ namespace GreenPrince
         {
             int[][] distanceRanges = { new[] { 6, 9 }, new[] { 12, 15 } };
             var names = new[] { "Ancient Ruin", "Sacred Grove" };
+            var kinds = new[] { WorldFeatureKind.FirstLandmark, WorldFeatureKind.SecondLandmark };
 
             for (int i = 0; i < 2; i++)
             {
@@ -169,7 +234,7 @@ namespace GreenPrince
                 if (pos.HasValue)
                 {
                     var feature = new WorldFeature(
-                        pos.Value, names[i], WorldFeatureType.Landmark,
+                        pos.Value, names[i], kinds[i], WorldFeatureType.Landmark,
                         ResourceType.Force, 3);
                     feature.Rewards[CampResourceType.Technology] = 1;
                     feature.Rewards[CampResourceType.Experience] = 1;
@@ -185,8 +250,8 @@ namespace GreenPrince
             if (pos.HasValue)
             {
                 var feature = new WorldFeature(
-                    pos.Value, "Goblin Camp", WorldFeatureType.Hazard,
-                    ResourceType.Force, 2);
+                    pos.Value, "Goblin Camp", WorldFeatureKind.GoblinCamp,
+                    WorldFeatureType.Hazard, ResourceType.Force, 2);
                 feature.Rewards[CampResourceType.Experience] = 1;
                 feature.Rewards[CampResourceType.Lore] = 1;
                 s_Features.Add(feature);
@@ -195,35 +260,34 @@ namespace GreenPrince
 
         static void PlacePickups(int width, int height, Vector2Int campPos, IRandomSource rng)
         {
-            // "First 9 rows" interpreted as first 9 columns out from camp.
-            int maxXExclusive = Mathf.Min(width, 9);
-
-            PlacePickupType(width, height, campPos, rng, CampResourceType.Lore, count: 3, maxXExclusive);
-            PlacePickupType(width, height, campPos, rng, CampResourceType.Experience, count: 2, maxXExclusive);
+            PlacePickupType(width, height, campPos, rng, CampResourceType.Technology, count: 2,
+                PickupMinDistance, PickupMaxDistance);
+            PlacePickupType(width, height, campPos, rng, CampResourceType.Experience, count: 1,
+                PickupMinDistance, PickupMaxDistance);
+            PlacePickupType(width, height, campPos, rng, CampResourceType.Lore, count: 1,
+                PickupMinDistance, PickupMaxDistance);
         }
 
         static void PlacePickupType(int width, int height, Vector2Int campPos, IRandomSource rng,
-            CampResourceType type, int count, int maxXExclusive)
+            CampResourceType type, int count, int minDist, int maxDist)
         {
             int attempts = 0;
             int placed = 0;
             while (placed < count && attempts < 200)
             {
                 attempts++;
-                int x = rng.Next(1, maxXExclusive); // skip camp column
-                int y = rng.Next(0, height);
-                var pos = new Vector2Int(x, y);
+                var pos = PickPosition(width, height, campPos, minDist, maxDist, rng);
+                if (!pos.HasValue) break;
 
-                if (GetFeatureAt(pos) != null) continue;
+                if (GetFeatureAt(pos.Value) != null) continue;
 
-                var list = s_Pickups[x, y];
+                var list = s_Pickups[pos.Value.x, pos.Value.y];
                 if (list == null)
                 {
                     list = new List<WorldPickup>();
-                    s_Pickups[x, y] = list;
+                    s_Pickups[pos.Value.x, pos.Value.y] = list;
                 }
 
-                // allow stacking different types, but avoid duplicates of the same type
                 bool hasSame = false;
                 foreach (var p in list)
                 {
@@ -231,7 +295,7 @@ namespace GreenPrince
                 }
                 if (hasSame) continue;
 
-                list.Add(new WorldPickup(pos, type));
+                list.Add(new WorldPickup(pos.Value, type));
                 placed++;
             }
         }

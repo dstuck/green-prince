@@ -126,6 +126,12 @@ namespace GreenPrince
             StartFlash(type, FlashInsufficientRoutine(label, type));
         }
 
+        public void FlashGain(ResourceType type)
+        {
+            if (!m_Labels.TryGetValue(type, out var label)) return;
+            StartFlash(type, FlashGainRoutine(label, type));
+        }
+
         void StartFlash(ResourceType type, IEnumerator routine)
         {
             if (m_ActiveFlashes.TryGetValue(type, out var active) && active != null)
@@ -146,6 +152,27 @@ namespace GreenPrince
                 elapsed += Time.deltaTime;
                 float t = elapsed / duration;
                 label.color = Color.Lerp(Color.white, baseColor, t);
+                label.fontSize = Mathf.Lerp(28f, 24f, t);
+                yield return null;
+            }
+
+            label.color = baseColor;
+            label.fontSize = 24f;
+            m_ActiveFlashes.Remove(type);
+        }
+
+        IEnumerator FlashGainRoutine(TextMeshProUGUI label, ResourceType type)
+        {
+            var baseColor = ResourceColors.Get(type);
+            var gainColor = new Color(0.5f, 1f, 0.5f);
+
+            float duration = 0.35f;
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+                label.color = Color.Lerp(gainColor, baseColor, t);
                 label.fontSize = Mathf.Lerp(28f, 24f, t);
                 yield return null;
             }

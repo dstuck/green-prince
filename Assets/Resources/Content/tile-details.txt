@@ -1,0 +1,44 @@
+# Shift-hover labels for special tiles, camp, and world features.
+# Keys under tiles: match TileDefinition Id (e.g. tile.orchard).
+# Keys under features: match WorldFeatureKind enum name in snake_case.
+# Keys under ui: static screen labels (e.g. camp).
+#
+# Edit name + description only — keep ids aligned with game data.
+
+tiles:
+  tile.orchard:
+    name: Orchard
+    description: Gain 2 Food
+
+  tile.watch_tower:
+    name: Watch Tower
+    description: Reveals nearby tiles
+
+  tile.shrine:
+    name: Shrine of the Wanderer
+    description: Add 6 blank tiles to your deck
+
+  tile.masks:
+    name: Frightening Masks
+    description: Intimidate 1
+
+  tile.tinker_bag:
+    name: Tinker's Bag
+    description: Tinkerer 1
+
+features:
+  first_landmark:
+    name: Ancient Ruin
+    description: Earn Technology, Experience, and Lore
+
+  second_landmark:
+    name: Sacred Grove
+    description: Earn Technology, Experience, and Lore
+
+  goblin_camp:
+    name: Goblin Camp
+    description: Earn Experience and Lore
+
+ui:
+  camp:
+    name: Camp

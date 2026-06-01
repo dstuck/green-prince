@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea317c3ee3a74429fb10c499478a5d35, type: 3}
+  m_Name: CampCard_Shrine_T2
+  m_EditorClassIdentifier: 
+  m_ShopLabel: Shrine
+  m_DisplayName: Shrine of the Wanderer
+  m_Description: Place a Shrine tile (2 Food to clear). Adds 6 blank tiles to your
+    adventure deck.
+  m_TileToAdd: {fileID: 11400000, guid: 3ae4959cb37014d3489356c530a0a939, type: 2}
+  m_CostTechnology: 0
+  m_CostExperience: 0
+  m_CostLore: 2
+  m_NextTier: {fileID: 0}
