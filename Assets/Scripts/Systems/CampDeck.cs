@@ -5,11 +5,9 @@ namespace GreenPrince
 {
     public class CampDeck
     {
-        public IReadOnlyList<CardDefinitionId> CardIds => WorldState.CampCardIds;
-
         public void SpawnIntoStack(CardCatalog catalog, CardStack target)
         {
-            foreach (var id in CardIds)
+            foreach (var id in WorldState.GetActiveLoadout())
                 target.Add(catalog.Spawn(id), StackPosition.Bottom);
         }
     }

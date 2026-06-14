@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -6,24 +7,65 @@ namespace GreenPrince
 {
     public class PartyToken : MonoBehaviour
     {
+        const float ArrivalThreshold = 0.02f;
+
         [SerializeField] InputActionReference m_MoveActionRef;
         [SerializeField] float m_MoveSpeed = 8f;
         [SerializeField] float m_StepCooldown = 0.2f;
 
         public event Action<Vector2Int> MoveRequested;
 
+        static readonly Color PartyColor = new Color(0.4f, 0.85f, 1f);
+        static readonly Color CampColor = new Color(0.9f, 0.75f, 0.3f);
+
         Vector2Int m_GridPosition;
         Vector3 m_TargetWorldPos;
         float m_CooldownTimer;
         bool m_WasNeutral = true;
+        bool m_AcceptingMoveInput = true;
+        SpriteRenderer m_SpriteRenderer;
 
         public Vector2Int GridPosition => m_GridPosition;
+
+        public bool HasReachedDestination =>
+            Vector3.Distance(transform.position, m_TargetWorldPos) <= ArrivalThreshold;
+
+        public void SetAcceptingMoveInput(bool accepting) => m_AcceptingMoveInput = accepting;
+
+        void Awake()
+        {
+            m_SpriteRenderer = GetComponent<SpriteRenderer>();
+        }
+
+        public void SetCampAppearance(bool useCampAppearance)
+        {
+            if (m_SpriteRenderer == null)
+                m_SpriteRenderer = GetComponent<SpriteRenderer>();
+            if (m_SpriteRenderer != null)
+                m_SpriteRenderer.color = useCampAppearance ? CampColor : PartyColor;
+        }
 
         public void SetGridPosition(Vector2Int pos, Vector3 worldPos)
         {
             m_GridPosition = pos;
             m_TargetWorldPos = worldPos;
             transform.position = worldPos;
+        }
+
+        public IEnumerator WaitUntilArrived(float timeoutSeconds = 2f)
+        {
+            if (HasReachedDestination)
+                yield break;
+
+            float elapsed = 0f;
+            while (!HasReachedDestination && elapsed < timeoutSeconds)
+            {
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            if (!HasReachedDestination)
+                transform.position = m_TargetWorldPos;
         }
 
         void OnEnable()
@@ -44,6 +86,9 @@ namespace GreenPrince
         {
             transform.position = Vector3.MoveTowards(
                 transform.position, m_TargetWorldPos, m_MoveSpeed * Time.deltaTime);
+
+            if (!m_AcceptingMoveInput)
+                return;
 
             m_CooldownTimer -= Time.deltaTime;
 

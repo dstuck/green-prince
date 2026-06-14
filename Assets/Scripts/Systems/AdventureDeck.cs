@@ -35,21 +35,25 @@ namespace GreenPrince
             if (count <= 0) return;
 
             for (int i = 0; i < count; i++)
-                m_DrawStack.Add(m_Catalog.Spawn(definitionId), StackPosition.Bottom);
+                m_DrawStack.Add(m_Catalog.Spawn(definitionId), StackPosition.Top);
 
             m_DrawStack.Shuffle(m_Rng);
         }
 
         void InitializeDrawStack()
         {
-            m_Camp.SpawnIntoStack(m_Catalog, m_DrawStack);
+            var pool = new CardStack("AdventureInit");
+            m_Camp.SpawnIntoStack(m_Catalog, pool);
 
             var forestPool = new CardStack("ForestInit");
             m_Forest.FillPool(forestPool, clearTarget: true);
             while (forestPool.Count > 0)
-                m_DrawStack.Add(forestPool.Draw(), StackPosition.Bottom);
+                pool.Add(forestPool.Draw(), StackPosition.Top);
 
-            m_DrawStack.Shuffle(m_Rng);
+            pool.Shuffle(m_Rng);
+
+            while (pool.Count > 0)
+                m_DrawStack.Add(pool.Draw(), StackPosition.Top);
         }
     }
 }

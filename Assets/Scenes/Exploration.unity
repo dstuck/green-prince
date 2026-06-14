@@ -172,6 +172,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 4927eaeac7d864db0ae3e236333aac50, type: 2}
   - {fileID: 11400000, guid: 19e5da15aa1854a8481076363439ce97, type: 2}
   - {fileID: 11400000, guid: 3ae4959cb37014d3489356c530a0a939, type: 2}
+  - {fileID: 11400000, guid: c4e59912c23f64e58b9baa6c123212d1, type: 2}
+  - {fileID: 11400000, guid: 7fcba3c01b16e4dd58a14733e24a8157, type: 2}
+  - {fileID: 11400000, guid: b0b9eb30826fb492a92a2871a13eb3aa, type: 2}
+  - {fileID: 11400000, guid: 303847fa20c9b4bcbb1384daff8c80bb, type: 2}
+  - {fileID: 11400000, guid: 1f820c159a64d42faabe7cb77a6e434c, type: 2}
   m_HelpfulGoblinTile: {fileID: 11400000, guid: bf80a50ddc53c42d7bba62ac8276c5bc, type: 2}
   m_ShopCatalog: {fileID: 11400000, guid: c411b3cfcb4b444668eacdece05274df, type: 2}
   m_PartyToken: {fileID: 1457951040}

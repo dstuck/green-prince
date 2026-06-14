@@ -10,13 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ea317c3ee3a74429fb10c499478a5d35, type: 3}
-  m_Name: CampCard_WatchTower_T2
+  m_Name: CampCard_CrabTraps_L1
   m_EditorClassIdentifier: 
-  m_ShopLabel: 
-  m_DisplayName: Watch Tower II
-  m_Description: 
-  m_TileToAdd: {fileID: 11400000, guid: 6ffd5a0b2bd4e47c6931db9945cb9919, type: 2}
-  m_CostTechnology: 2
-  m_CostExperience: 0
+  m_ShopLabel: Traps
+  m_DisplayName: Crab Traps
+  m_Description: Place a Crab Traps tile (2 Food to clear). Adds 3 Hard Shell (+1
+    Force) tiles to your deck.
+  m_TileToAdd: {fileID: 11400000, guid: 7fcba3c01b16e4dd58a14733e24a8157, type: 2}
+  m_CostTechnology: 0
+  m_CostExperience: 1
   m_CostLore: 0
-  m_NextTier: {fileID: 11400000, guid: 8678e623936614df298ba18f457651b3, type: 2}
+  m_NextTier: {fileID: 0}
