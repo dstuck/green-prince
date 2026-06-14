@@ -8,6 +8,7 @@ namespace GreenPrince
     {
         TileView[,] m_TileViews;
         ICardDefinitionRegistry m_Registry;
+        Vector2Int? m_CaravanGoal;
 
         public void Initialize(GridModel model, ICardDefinitionRegistry registry)
         {
@@ -28,9 +29,22 @@ namespace GreenPrince
             }
         }
 
+        public void SetCaravanGoal(Vector2Int? goalPosition)
+        {
+            m_CaravanGoal = goalPosition;
+        }
+
         public void UpdateTile(Vector2Int pos, TileState tileState)
         {
             var view = m_TileViews[pos.x, pos.y];
+            bool isGoal = m_CaravanGoal.HasValue && m_CaravanGoal.Value == pos;
+            view.SetCaravanGoalHighlight(isGoal);
+
+            if (isGoal && !tileState.IsRevealed)
+            {
+                view.ShowCaravanGoalUnrevealed();
+                return;
+            }
 
             if (tileState.IsCamp)
             {

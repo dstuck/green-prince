@@ -18,7 +18,7 @@ namespace GreenPrince
         [SerializeField] int m_StartFood = 10;
         [SerializeField] int m_StartForce = 5;
         [SerializeField] int m_StartTools = 4;
-        [SerializeField] int m_FoodInterval = 5;
+        [SerializeField] int m_FoodInterval = 4;
 
         [Header("References")]
         [FormerlySerializedAs("m_LandRecipe")]
@@ -33,12 +33,14 @@ namespace GreenPrince
         AdventureDeck m_Deck;
         CardPipeline m_Pipeline;
         CardDefinitionRegistry m_Registry;
+        CardCatalog m_Catalog;
         AdventureResources m_Resources;
         ResourceHUD m_HUD;
         PauseMenu m_PauseMenu;
         CampShopPopup m_ShopPopup;
         TileDetailsOverlay m_TileDetails;
         GameState m_State = GameState.Exploring;
+        bool m_IsCaravanRun;
 
         void Start()
         {
@@ -48,12 +50,21 @@ namespace GreenPrince
                 return;
             }
 
+            m_FoodInterval = 4;
+
             m_Registry = new CardDefinitionRegistry();
             m_Registry.RegisterAll(m_TileDefinitions);
+            foreach (var tileDef in m_TileDefinitions)
+            {
+                if (tileDef?.DeckInjectTile == null) continue;
+                m_Registry.Register(tileDef.DeckInjectTile);
+            }
+
             if (m_HelpfulGoblinTile != null)
                 m_Registry.Register(m_HelpfulGoblinTile);
 
             var catalog = new CardCatalog(m_Registry);
+            m_Catalog = catalog;
             var rng = new SystemRandomSource();
 
             WorldState.Initialize(m_GridWidth, m_GridHeight, rng);
@@ -65,17 +76,23 @@ namespace GreenPrince
             m_Deck = new AdventureDeck(forest, camp, catalog, rng);
             m_Pipeline = new CardPipeline();
 
-            var campPos = new Vector2Int(0, m_GridHeight / 2);
+            m_IsCaravanRun = WorldState.IsCaravanActive;
+            var campPos = WorldState.CampPosition;
             m_Grid = new GridModel(m_GridWidth, m_GridHeight, campPos);
 
             m_GridView.Initialize(m_Grid, m_Registry);
 
             var campWorldPos = m_GridView.GridToWorld(campPos);
             m_PartyToken.SetGridPosition(campPos, campWorldPos);
+            m_PartyToken.SetCampAppearance(m_IsCaravanRun);
+            ApplyCaravanGoalPresentation();
 
             RevealAdjacent(campPos);
 
             m_Resources = new AdventureResources(m_StartFood, m_StartForce, m_StartTools);
+            int magicLevel = PartyAbilities.GetMagicLevel(m_Registry);
+            if (magicLevel > 0)
+                m_Resources.GainMagic(magicLevel);
             InitHUD();
             InitPauseMenu();
             InitShopPopup();
@@ -98,7 +115,10 @@ namespace GreenPrince
             }
 
             if (m_ShopPopup != null)
+            {
                 m_ShopPopup.Closed -= OnShopClosed;
+                m_ShopPopup.MoveCampRequested -= OnMoveCampRequested;
+            }
         }
 
         void InitHUD()
@@ -122,7 +142,9 @@ namespace GreenPrince
         {
             var shopGo = new GameObject("CampShopPopup");
             m_ShopPopup = shopGo.AddComponent<CampShopPopup>();
+            m_ShopPopup.Initialize(m_Registry);
             m_ShopPopup.Closed += OnShopClosed;
+            m_ShopPopup.MoveCampRequested += OnMoveCampRequested;
         }
 
         void InitTileDetails()
@@ -136,30 +158,52 @@ namespace GreenPrince
         {
             if (m_State == GameState.Shopping) return;
             m_State = GameState.Paused;
-            m_PartyToken.enabled = false;
+            m_PartyToken.SetAcceptingMoveInput(false);
         }
 
         void OnResumeRequested()
         {
             if (m_State == GameState.Shopping) return;
             m_State = GameState.Exploring;
-            m_PartyToken.enabled = true;
+            m_PartyToken.SetAcceptingMoveInput(true);
         }
 
         void OnGiveUpRequested()
         {
-            TriggerGameOver();
+            if (m_IsCaravanRun)
+                TriggerCaravanFailure();
+            else
+                TriggerGameOver();
         }
 
         void OnQuitRequested()
         {
-            WorldState.Reset();
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            GameSession.RestartGame();
         }
 
         void OnShopClosed()
         {
+            WorldState.EndCaravan();
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+
+        void OnMoveCampRequested()
+        {
+            WorldState.BeginCaravan(WorldFeatureKind.FirstLandmark);
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+
+        void ApplyCaravanGoalPresentation()
+        {
+            if (m_IsCaravanRun && WorldState.TryGetCaravanGoalPosition(out var goal))
+            {
+                m_GridView.SetCaravanGoal(goal);
+                m_GridView.UpdateTile(goal, m_Grid.GetTile(goal));
+            }
+            else
+            {
+                m_GridView.SetCaravanGoal(null);
+            }
         }
 
         void OnMoveRequested(Vector2Int direction)
@@ -178,6 +222,7 @@ namespace GreenPrince
             tile = m_Grid.GetTile(target);
 
             bool scoutWatchTower = false;
+            int setAllResourcesAfterStep = 0;
 
             if (!tile.IsVisited)
             {
@@ -199,7 +244,10 @@ namespace GreenPrince
                 GrantTileRewardIfAny(tile);
 
                 if (tile.Card != null)
+                {
                     TryApplyShrineDeckBonus(tile);
+                    setAllResourcesAfterStep = TryApplyTileVisitEffects(tile, target);
+                }
 
                 if (!tile.IsCamp)
                     CollectPickupsIfAny(target);
@@ -215,11 +263,66 @@ namespace GreenPrince
             if (scoutWatchTower)
                 ApplyWatchTowerScout(target);
 
+            if (m_IsCaravanRun && TryBeginCaravanComplete(target))
+                return;
+
             bool survived = m_Resources.RecordStep(m_FoodInterval);
             if (m_Resources.StepTriggeredConsumption)
                 m_HUD.FlashSpend(ResourceType.Food);
+
+            if (setAllResourcesAfterStep > 0)
+            {
+                m_Resources.SetAllResourcesTo(setAllResourcesAfterStep);
+                m_HUD.FlashAllResourcesSet();
+            }
+
             if (!survived)
-                TriggerGameOver();
+            {
+                if (m_IsCaravanRun)
+                    TriggerCaravanFailure();
+                else
+                    TriggerGameOver();
+            }
+        }
+
+        bool TryBeginCaravanComplete(Vector2Int pos)
+        {
+            if (!m_IsCaravanRun) return false;
+
+            if (!WorldState.TryGetCaravanGoalPosition(out var goalPos) || pos != goalPos)
+                return false;
+
+            m_State = GameState.GameOver;
+            m_PartyToken.SetAcceptingMoveInput(false);
+            m_PauseMenu.SetInteractable(false);
+            m_HUD.ShowReturningToCamp();
+            StartCoroutine(CompleteCaravanAfterTokenArrives(pos));
+            return true;
+        }
+
+        IEnumerator CompleteCaravanAfterTokenArrives(Vector2Int pos)
+        {
+            yield return m_PartyToken.WaitUntilArrived();
+
+            var tile = m_Grid.GetTile(pos);
+            m_GridView.UpdateTile(pos, tile);
+
+            WorldState.CompleteMigration(pos);
+            m_Grid.RelocateCamp(pos);
+            m_IsCaravanRun = false;
+            m_PartyToken.SetCampAppearance(false);
+            m_GridView.SetCaravanGoal(null);
+
+            yield return null;
+
+            WorldState.EndCaravan();
+            m_State = GameState.Shopping;
+            m_ShopPopup.Show(m_ShopCatalog);
+        }
+
+        void TriggerCaravanFailure()
+        {
+            GameSession.RestartGame();
         }
 
         void TryUnlockHelpfulGoblin(WorldFeature feature)
@@ -247,6 +350,54 @@ namespace GreenPrince
             if (def == null || def.DeckBlankTilesToInject <= 0) return;
 
             m_Deck.InjectTiles(new CardDefinitionId("tile.green0"), def.DeckBlankTilesToInject);
+        }
+
+        /// <returns>Resource total to set after the movement food step, or 0 if none.</returns>
+        int TryApplyTileVisitEffects(TileState tile, Vector2Int pos)
+        {
+            var def = m_Registry.Get(tile.Card.DefinitionId) as TileDefinitionSO;
+            if (def == null) return 0;
+
+            if (def.DeckInjectTile != null && def.DeckInjectCount > 0)
+            {
+                m_Deck.InjectTiles(def.DeckInjectTile.Id, def.DeckInjectCount);
+                m_HUD.ShowStatusMessage(
+                    $"{def.DeckInjectCount} {def.DeckInjectTile.TileDisplayName} added to deck");
+            }
+
+            if (def.BlankNeighborsOnVisit)
+                ApplyBlankNeighbors(pos);
+
+            if (def.MagicLevel > 0)
+            {
+                m_Resources.GainMagic(def.MagicLevel);
+                m_HUD.FlashMagicGain();
+            }
+
+            if (def.SetAllResourcesToOnVisit > 0)
+                return def.SetAllResourcesToOnVisit;
+
+            return 0;
+        }
+
+        void ApplyBlankNeighbors(Vector2Int center)
+        {
+            for (int dx = -1; dx <= 1; dx++)
+            for (int dy = -1; dy <= 1; dy++)
+            {
+                if (dx == 0 && dy == 0) continue;
+
+                var neighborPos = center + new Vector2Int(dx, dy);
+                if (!m_Grid.IsInBounds(neighborPos)) continue;
+
+                var neighbor = m_Grid.GetTile(neighborPos);
+                if (neighbor.IsCamp) continue;
+
+                neighbor.Card = m_Catalog.Spawn(new CardDefinitionId("tile.green0"));
+                neighbor.IsRevealed = true;
+                neighbor.IsExplored = true;
+                m_GridView.UpdateTile(neighborPos, neighbor);
+            }
         }
 
         bool IsWatchTowerTile(TileState tile)
@@ -299,6 +450,9 @@ namespace GreenPrince
 
             if (cost <= 0) return true;
 
+            if (m_Resources.TrySpendMagic())
+                return true;
+
             if (!m_Resources.CanAfford(costType, cost))
             {
                 m_HUD.FlashInsufficient(costType);
@@ -337,15 +491,22 @@ namespace GreenPrince
         void TriggerGameOver()
         {
             m_State = GameState.GameOver;
-            m_PartyToken.enabled = false;
+            m_PartyToken.SetAcceptingMoveInput(false);
             m_PauseMenu.SetInteractable(false);
             m_HUD.ShowReturningToCamp();
-            StartCoroutine(ShowShopAfterDelay(1.5f));
+            StartCoroutine(FinishRunAndOpenShop());
         }
 
-        IEnumerator ShowShopAfterDelay(float delay)
+        IEnumerator FinishRunAndOpenShop()
         {
-            yield return new WaitForSeconds(delay);
+            yield return m_PartyToken.WaitUntilArrived();
+
+            var pos = m_PartyToken.GridPosition;
+            m_GridView.UpdateTile(pos, m_Grid.GetTile(pos));
+
+            yield return null;
+
+            WorldState.EndCaravan();
             m_State = GameState.Shopping;
             m_ShopPopup.Show(m_ShopCatalog);
         }

@@ -13,6 +13,9 @@ namespace GreenPrince
         readonly Dictionary<ResourceType, Coroutine> m_ActiveFlashes = new();
         AdventureResources m_Resources;
         TextMeshProUGUI m_StatusLabel;
+        TextMeshProUGUI m_MagicLabel;
+        GameObject m_MagicLabelRoot;
+        Coroutine m_StatusMessageRoutine;
 
         public void Bind(AdventureResources resources)
         {
@@ -78,6 +81,17 @@ namespace GreenPrince
                 m_Labels[type] = tmp;
             }
 
+            m_MagicLabelRoot = new GameObject("Magic");
+            m_MagicLabelRoot.transform.SetParent(panelGo.transform, false);
+            var magicRect = m_MagicLabelRoot.AddComponent<RectTransform>();
+            magicRect.sizeDelta = new Vector2(180f, 30f);
+            m_MagicLabel = m_MagicLabelRoot.AddComponent<TextMeshProUGUI>();
+            m_MagicLabel.fontSize = 24f;
+            m_MagicLabel.color = new Color(0.75f, 0.55f, 0.95f);
+            m_MagicLabel.fontStyle = FontStyles.Bold;
+            m_MagicLabel.text = "Magic: 0";
+            m_MagicLabelRoot.SetActive(false);
+
             var statusGo = new GameObject("StatusLabel");
             statusGo.transform.SetParent(transform, false);
 
@@ -106,12 +120,44 @@ namespace GreenPrince
                 if (m_Labels.TryGetValue(type, out var label))
                     label.text = $"{type}: {m_Resources.Get(type)}";
             }
+
+            if (m_MagicLabel != null && m_MagicLabelRoot != null)
+            {
+                bool showMagic = m_Resources.Magic > 0;
+                m_MagicLabelRoot.SetActive(showMagic);
+                if (showMagic)
+                    m_MagicLabel.text = $"Magic: {m_Resources.Magic}";
+            }
         }
 
         public void ShowReturningToCamp()
         {
             m_StatusLabel.text = "Returning to Camp...";
             m_StatusLabel.enabled = true;
+        }
+
+        public void ShowStatusMessage(string message, float durationSeconds = 2.5f)
+        {
+            if (m_StatusLabel == null) return;
+
+            if (m_StatusMessageRoutine != null)
+                StopCoroutine(m_StatusMessageRoutine);
+
+            m_StatusLabel.text = message;
+            m_StatusLabel.enabled = true;
+            m_StatusMessageRoutine = StartCoroutine(HideStatusMessageAfter(durationSeconds));
+        }
+
+        IEnumerator HideStatusMessageAfter(float durationSeconds)
+        {
+            yield return new WaitForSeconds(durationSeconds);
+            if (m_StatusLabel != null)
+            {
+                m_StatusLabel.text = "";
+                m_StatusLabel.enabled = false;
+            }
+
+            m_StatusMessageRoutine = null;
         }
 
         public void FlashSpend(ResourceType type)
@@ -130,6 +176,18 @@ namespace GreenPrince
         {
             if (!m_Labels.TryGetValue(type, out var label)) return;
             StartFlash(type, FlashGainRoutine(label, type));
+        }
+
+        public void FlashMagicGain()
+        {
+            if (m_MagicLabel == null) return;
+            StartFlash(ResourceType.Food, FlashMagicGainRoutine());
+        }
+
+        public void FlashAllResourcesSet()
+        {
+            foreach (ResourceType type in Enum.GetValues(typeof(ResourceType)))
+                FlashGain(type);
         }
 
         void StartFlash(ResourceType type, IEnumerator routine)
@@ -180,6 +238,29 @@ namespace GreenPrince
             label.color = baseColor;
             label.fontSize = 24f;
             m_ActiveFlashes.Remove(type);
+        }
+
+        IEnumerator FlashMagicGainRoutine()
+        {
+            var baseColor = new Color(0.75f, 0.55f, 0.95f);
+            var gainColor = new Color(0.85f, 0.7f, 1f);
+            m_MagicLabelRoot.SetActive(true);
+
+            float duration = 0.35f;
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+                m_MagicLabel.color = Color.Lerp(gainColor, baseColor, t);
+                m_MagicLabel.fontSize = Mathf.Lerp(28f, 24f, t);
+                yield return null;
+            }
+
+            m_MagicLabel.color = baseColor;
+            m_MagicLabel.fontSize = 24f;
+            if (m_Resources != null && m_Resources.Magic <= 0)
+                m_MagicLabelRoot.SetActive(false);
         }
 
         IEnumerator FlashInsufficientRoutine(TextMeshProUGUI label, ResourceType type)

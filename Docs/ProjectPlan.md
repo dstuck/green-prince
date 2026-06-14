@@ -17,9 +17,9 @@ After overcoming persistent challenges and identifying a new landmark, they must
 ## Resources
 
 Adventurers start their journey with food (yellow), force (red), and tools (blue) as core resources and will collect camp resources:
-technology (purple): aligned with force and tools, improves camp capabilities
-experience (orange): aligned with food and force, improves adventurers
-lore (green): aligned with food and tools, improves nature tiles
+- technology (purple): aligned with force and tools, improves camp capabilities
+- experience (orange): aligned with food and force, improves adventurers
+- lore (green): aligned with tools and food, improves nature tiles
 
 ---
 
@@ -48,12 +48,27 @@ v0.4 - card buying
 - [x] Cards are shuffled into the deck at the start of the adventure
 - [x] Implement hierarchy of cards (random or deterministic)
 
-v0.5 - camp
-- [ ] Adventurers left at camp modify resource gain at camp 
-- [ ] Collect camp resources as you explore
-- [ ] Camp resources improve adventurers and modify map tiles
+v0.5 - migration
 
-v1.X - party
-- [ ] Select party member screen before adventure
-- [ ] 4 party members with abilities that affect drawn tiles (reduce damage by one, find food in green tiles)
-- [ ] Placed tiles get modified by party before showing up on map
+### Camp position
+- [x] WorldState.CampPosition persisted and mutable; grid camp tile relocates on migration
+
+### Unlock and shop
+- [x] "Move camp" in shop when ≥4 camp cards purchased (next to Continue Adventure)
+- [x] Single shop catalog: chains extend via NextTier into Landmark 1 offers (Mechanics.md)
+
+### Caravan
+- [x] Caravan run: same rules as exploration; token shows camp
+- [x] Success: reach next landmark (v0.5: FirstLandmark), move camp there, end run
+- [x] Failure: full game restart (reset persistent state)
+
+### Map
+- [x] Broken mountain path partial segment from first to second landmark (3, gap, 1, disconnected)
+
+### After migration
+- [x] Spawn +3 of each camp resource pickup past second landmark, spread over next 10 columns (multi per tile OK)
+
+### Loadout
+- [x] WorldState.LoadoutCardIds + SyncLoadout; CampDeck/PartyAbilities use loadout only (ship before UI)
+- [x] &lt;4 owned: empty loadout; 4 owned: auto-select all four; 5+: keep valid selection, flag when new card needs pick
+- [x] ≥5 owned: loadout grid UI edits same state (3 rows, Enter toggle, max 4); highlight when new card purchased

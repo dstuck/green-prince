@@ -20,4 +20,4 @@ MonoBehaviour:
   m_CostTechnology: 0
   m_CostExperience: 2
   m_CostLore: 0
-  m_NextTier: {fileID: 0}
+  m_NextTier: {fileID: 11400000, guid: 7cffdb0732e4e4828b91dce8b385c752, type: 2}

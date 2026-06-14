@@ -9,8 +9,10 @@ namespace GreenPrince
         static readonly Color CampColor = new Color(0.9f, 0.75f, 0.3f);
         static readonly Color LandmarkColor = new Color(0.85f, 0.65f, 0.9f);
         static readonly Color HazardColor = new Color(0.8f, 0.35f, 0.3f);
+        static readonly Color CaravanGoalColor = new Color(1f, 0.88f, 0.25f);
 
         SpriteRenderer m_Renderer;
+        bool m_IsCaravanGoal;
         TextMeshPro m_Label;
         SpriteRenderer m_ChallengeRenderer;
         TextMeshPro m_ChallengeLabel;
@@ -20,6 +22,20 @@ namespace GreenPrince
         SpriteRenderer[] m_PickupRenderers;
 
         public Vector2Int GridPosition { get; private set; }
+
+        public void SetCaravanGoalHighlight(bool isGoal) => m_IsCaravanGoal = isGoal;
+
+        public void ShowCaravanGoalUnrevealed()
+        {
+            m_Renderer.color = CaravanGoalColor;
+            m_Label.text = "★ GOAL";
+            m_Label.fontSize = 2.6f;
+            m_Label.color = Color.white;
+            HideChallenge();
+            HideBenefit();
+            HideIcon();
+            HidePickups();
+        }
 
         public void Initialize(Vector2Int gridPosition)
         {
@@ -73,6 +89,8 @@ namespace GreenPrince
             {
                 m_Label.text = "";
             }
+
+            ApplyGoalAccent();
         }
 
         public void ShowCamp()
@@ -106,6 +124,7 @@ namespace GreenPrince
                 else
                     HideChallenge();
                 HideBenefit();
+                ApplyGoalAccent();
                 return;
             }
 
@@ -136,6 +155,17 @@ namespace GreenPrince
                 ShowBenefit(ResourceColors.Get(definition.RewardType), definition.RewardAmount);
             else
                 HideBenefit();
+
+            ApplyGoalAccent();
+        }
+
+        void ApplyGoalAccent()
+        {
+            if (!m_IsCaravanGoal) return;
+            m_Renderer.color = CaravanGoalColor;
+            m_Label.text = string.IsNullOrEmpty(m_Label.text) ? "★ GOAL" : $"{m_Label.text}\n★ GOAL";
+            m_Label.fontSize = Mathf.Max(m_Label.fontSize, 2.4f);
+            m_Label.color = Color.white;
         }
 
         void ShowChallenge(Color color, int value)

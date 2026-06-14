@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ea317c3ee3a74429fb10c499478a5d35, type: 3}
-  m_Name: CampCard_WatchTower_T2
+  m_Name: CampCard_WildStag_L1
   m_EditorClassIdentifier: 
-  m_ShopLabel: 
-  m_DisplayName: Watch Tower II
-  m_Description: 
-  m_TileToAdd: {fileID: 11400000, guid: 6ffd5a0b2bd4e47c6931db9945cb9919, type: 2}
-  m_CostTechnology: 2
+  m_ShopLabel: Stag
+  m_DisplayName: Wild Stag
+  m_Description: Place a Wild Stag tile (1 Tool to clear). Gain 4 Food when visited.
+  m_TileToAdd: {fileID: 11400000, guid: c4e59912c23f64e58b9baa6c123212d1, type: 2}
+  m_CostTechnology: 0
   m_CostExperience: 0
-  m_CostLore: 0
-  m_NextTier: {fileID: 11400000, guid: 8678e623936614df298ba18f457651b3, type: 2}
+  m_CostLore: 1
+  m_NextTier: {fileID: 0}

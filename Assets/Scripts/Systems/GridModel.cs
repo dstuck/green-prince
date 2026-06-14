@@ -13,7 +13,7 @@ namespace GreenPrince
         public int Width => m_Width;
         public int Height => m_Height;
 
-        public Vector2Int CampPosition { get; }
+        public Vector2Int CampPosition { get; private set; }
 
         public GridModel(int width, int height, Vector2Int campPosition)
         {
@@ -37,6 +37,21 @@ namespace GreenPrince
             camp.IsCamp = true;
             camp.IsRevealed = true;
             camp.IsExplored = true;
+        }
+
+        public void RelocateCamp(Vector2Int newPosition)
+        {
+            if (newPosition == CampPosition) return;
+
+            var oldCamp = m_Tiles[CampPosition.x, CampPosition.y];
+            oldCamp.IsCamp = false;
+
+            var newCamp = m_Tiles[newPosition.x, newPosition.y];
+            newCamp.IsCamp = true;
+            newCamp.IsRevealed = true;
+            newCamp.IsExplored = true;
+
+            CampPosition = newPosition;
         }
 
         public bool IsInBounds(Vector2Int pos)

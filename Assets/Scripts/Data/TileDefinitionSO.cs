@@ -16,7 +16,12 @@ namespace GreenPrince
         [SerializeField] int m_RewardAmount;
         [SerializeField] int m_IntimidateLevel;
         [SerializeField] int m_TinkererLevel;
+        [SerializeField] int m_MagicLevel;
         [SerializeField] int m_DeckBlankTilesToInject;
+        [SerializeField] TileDefinitionSO m_DeckInjectTile;
+        [SerializeField] int m_DeckInjectCount;
+        [SerializeField] bool m_BlankNeighborsOnVisit;
+        [SerializeField] int m_SetAllResourcesToOnVisit;
 
         public ResourceType ResourceType => m_ResourceType;
         public int ChallengeValue => m_ChallengeValue;
@@ -28,11 +33,18 @@ namespace GreenPrince
         public int RewardAmount => m_RewardAmount;
         public int IntimidateLevel => m_IntimidateLevel;
         public int TinkererLevel => m_TinkererLevel;
+        public int MagicLevel => m_MagicLevel;
         public int DeckBlankTilesToInject =>
             m_DeckBlankTilesToInject > 0 ? m_DeckBlankTilesToInject : IsShrine ? 6 : 0;
+        public TileDefinitionSO DeckInjectTile => m_DeckInjectTile;
+        public int DeckInjectCount => m_DeckInjectCount;
+        public bool BlankNeighborsOnVisit => m_BlankNeighborsOnVisit;
+        public int SetAllResourcesToOnVisit => m_SetAllResourcesToOnVisit;
 
         public bool ShowTileLabel =>
-            m_IconType != TileIconType.None || HasReward || IsShrine || IsWatchTower;
+            m_IconType != TileIconType.None || HasReward || IsShrine || IsWatchTower
+            || m_MagicLevel > 0 || m_BlankNeighborsOnVisit || m_SetAllResourcesToOnVisit > 0
+            || (m_DeckInjectTile != null && m_DeckInjectCount > 0);
 
         public bool IsWatchTower =>
             m_IconType == TileIconType.WatchTower || Id.Value == "tile.watch_tower";

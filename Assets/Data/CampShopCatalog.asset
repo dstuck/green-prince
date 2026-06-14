@@ -14,5 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Chains:
   - Root: {fileID: 11400000, guid: 8161d16a4e1634fbcae8705cd24e0c6b, type: 2}
+    LandmarkRoot: {fileID: 11400000, guid: 8678e623936614df298ba18f457651b3, type: 2}
   - Root: {fileID: 11400000, guid: c680af4ac85c3429aa1caa66ead8a904, type: 2}
+    LandmarkRoot: {fileID: 11400000, guid: 7cffdb0732e4e4828b91dce8b385c752, type: 2}
   - Root: {fileID: 11400000, guid: cc6f3c8b56b4d484580c1b26c09cb233, type: 2}
+    LandmarkRoot: {fileID: 11400000, guid: ad470c5ad2cb54d70b6afdf4a799ef02, type: 2}
+  - Root: {fileID: 0}
+    LandmarkRoot: {fileID: 11400000, guid: c70776aeb6bc0444bbfa3e02cd624e34, type: 2}
+  - Root: {fileID: 0}
+    LandmarkRoot: {fileID: 11400000, guid: 2db704eac6c9345d98feb1ab88ac9cca, type: 2}

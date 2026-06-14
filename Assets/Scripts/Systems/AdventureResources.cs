@@ -7,8 +7,11 @@ namespace GreenPrince
     {
         readonly Dictionary<ResourceType, int> m_Values;
         int m_StepCount;
+        int m_Magic;
 
         public event Action Changed;
+
+        public int Magic => m_Magic;
 
         /// <summary>True after the most recent RecordStep call consumed food.</summary>
         public bool StepTriggeredConsumption { get; private set; }
@@ -41,6 +44,28 @@ namespace GreenPrince
         {
             if (amount <= 0) return;
             m_Values[type] += amount;
+            Changed?.Invoke();
+        }
+
+        public void GainMagic(int amount = 1)
+        {
+            if (amount <= 0) return;
+            m_Magic += amount;
+            Changed?.Invoke();
+        }
+
+        public bool TrySpendMagic()
+        {
+            if (m_Magic <= 0) return false;
+            m_Magic--;
+            Changed?.Invoke();
+            return true;
+        }
+
+        public void SetAllResourcesTo(int value)
+        {
+            foreach (ResourceType type in Enum.GetValues(typeof(ResourceType)))
+                m_Values[type] = value;
             Changed?.Invoke();
         }
 
