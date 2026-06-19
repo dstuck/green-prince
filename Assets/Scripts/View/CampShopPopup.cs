@@ -45,6 +45,9 @@ namespace GreenPrince
         const int LoadoutSlotCount = LoadoutColumns * LoadoutRows;
         const float LoadoutCellWidth = 158f;
         const float LoadoutCellHeight = 80f;
+        const float EmbedActionBarHeight = 88f;
+        const float EmbedHeaderHeight = 84f;
+        const float EmbedContentPadding = 20f;
 
         CampShopCatalogSO m_Catalog;
         CardDefinitionRegistry m_Registry;
@@ -56,6 +59,7 @@ namespace GreenPrince
         GameObject m_DetailPanel;
         GameObject m_ShopBody;
         GameObject m_LoadoutBody;
+        GameObject m_ActionsPanel;
         TextMeshProUGUI m_TitleLabel;
         TextMeshProUGUI m_ResourcesLabel;
         TextMeshProUGUI m_DetailTitle;
@@ -252,9 +256,16 @@ namespace GreenPrince
             canvas.sortingOrder = 60;
 
             var scaler = gameObject.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920, 1080);
+            OverlayCanvasUtility.Configure(scaler);
 
+            if (OverlayCanvasUtility.UseCompactEmbedLayout)
+                BuildCompactEmbedUi();
+            else
+                BuildDesktopUi();
+        }
+
+        void BuildDesktopUi()
+        {
             m_Panel = new GameObject(PanelName);
             m_Panel.transform.SetParent(transform, false);
 
@@ -263,6 +274,7 @@ namespace GreenPrince
 
             var bg = m_Panel.AddComponent<Image>();
             bg.color = PanelBg;
+            UiImageUtility.EnsureVisible(bg);
 
             var rootLayout = m_Panel.AddComponent<VerticalLayoutGroup>();
             rootLayout.padding = new RectOffset(28, 28, 24, 24);
@@ -302,7 +314,78 @@ namespace GreenPrince
             BuildActionsPanel(m_Panel.transform);
         }
 
-        GameObject BuildShopBody(Transform parent)
+        void BuildCompactEmbedUi()
+        {
+            m_Panel = new GameObject(PanelName);
+            m_Panel.transform.SetParent(transform, false);
+
+            var panelRect = GetOrAddRectTransform(m_Panel);
+            OverlayCanvasUtility.StretchWithMargins(panelRect, 24f);
+
+            var bg = m_Panel.AddComponent<Image>();
+            bg.color = PanelBg;
+            UiImageUtility.EnsureVisible(bg);
+
+            var topContent = new GameObject("TopContent");
+            topContent.transform.SetParent(m_Panel.transform, false);
+            var topRect = topContent.AddComponent<RectTransform>();
+            topRect.anchorMin = Vector2.zero;
+            topRect.anchorMax = Vector2.one;
+            topRect.offsetMin = new Vector2(0f, EmbedActionBarHeight);
+            topRect.offsetMax = Vector2.zero;
+
+            var header = new GameObject("Header");
+            header.transform.SetParent(topContent.transform, false);
+            var headerRect = header.AddComponent<RectTransform>();
+            headerRect.anchorMin = new Vector2(0f, 1f);
+            headerRect.anchorMax = new Vector2(1f, 1f);
+            headerRect.pivot = new Vector2(0.5f, 1f);
+            headerRect.sizeDelta = new Vector2(0f, EmbedHeaderHeight);
+            headerRect.anchoredPosition = Vector2.zero;
+
+            var headerLayout = header.AddComponent<VerticalLayoutGroup>();
+            headerLayout.padding = new RectOffset((int)EmbedContentPadding, (int)EmbedContentPadding, 8, 0);
+            headerLayout.spacing = 4f;
+            headerLayout.childAlignment = TextAnchor.UpperCenter;
+            headerLayout.childControlWidth = true;
+            headerLayout.childControlHeight = false;
+            headerLayout.childForceExpandWidth = true;
+
+            m_TitleLabel = AddLabel(header.transform, "Camp", 30f, FontStyles.Bold, Accent);
+            m_TitleLabel.gameObject.name = "TitleLabel";
+            m_ResourcesLabel = AddLabel(header.transform, "", 18f, FontStyles.Normal, new Color(0.75f, 0.78f, 0.85f));
+            m_ResourcesLabel.gameObject.name = "ResourcesLabel";
+
+            m_MainRow = new GameObject("MainRow");
+            m_MainRow.transform.SetParent(topContent.transform, false);
+            var mainRowRect = m_MainRow.AddComponent<RectTransform>();
+            mainRowRect.anchorMin = Vector2.zero;
+            mainRowRect.anchorMax = Vector2.one;
+            mainRowRect.offsetMin = new Vector2(EmbedContentPadding, EmbedContentPadding);
+            mainRowRect.offsetMax = new Vector2(-EmbedContentPadding, -(EmbedHeaderHeight + EmbedContentPadding));
+
+            var mainRowLayout = m_MainRow.AddComponent<HorizontalLayoutGroup>();
+            mainRowLayout.spacing = 12f;
+            mainRowLayout.padding = new RectOffset(0, 0, 0, 0);
+            mainRowLayout.childControlWidth = true;
+            mainRowLayout.childControlHeight = true;
+            mainRowLayout.childForceExpandWidth = false;
+            mainRowLayout.childForceExpandHeight = true;
+            mainRowLayout.childAlignment = TextAnchor.UpperLeft;
+
+            m_LeftPanel = CreateSubPanel(m_MainRow.transform, "LeftPanel", ListBg, 220f, 200f);
+            var leftLe = m_LeftPanel.GetComponent<LayoutElement>();
+            leftLe.flexibleWidth = 0f;
+            leftLe.flexibleHeight = 0f;
+
+            m_ShopBody = BuildShopBody(m_LeftPanel.transform, TextAnchor.UpperLeft);
+            m_LoadoutBody = BuildLoadoutBody(m_LeftPanel.transform);
+            m_DetailPanel = BuildDetailPanel(m_MainRow.transform);
+
+            BuildActionsPanel(m_Panel.transform);
+        }
+
+        GameObject BuildShopBody(Transform parent, TextAnchor listAlignment = TextAnchor.UpperCenter)
         {
             var bodyGo = new GameObject("ShopBody");
             bodyGo.transform.SetParent(parent, false);
@@ -314,7 +397,8 @@ namespace GreenPrince
             listLayout.childControlWidth = true;
             listLayout.childControlHeight = false;
             listLayout.childForceExpandWidth = true;
-            listLayout.childAlignment = TextAnchor.UpperCenter;
+            listLayout.childForceExpandHeight = false;
+            listLayout.childAlignment = listAlignment;
 
             int offerSlots = m_Catalog != null ? CampShopCatalogSO.MaxVisibleOffers : 0;
             for (int i = 0; i < offerSlots; i++)
@@ -380,19 +464,43 @@ namespace GreenPrince
 
         void BuildActionsPanel(Transform parent)
         {
-            var actionsPanel = CreateSubPanel(parent, "CampActions", ActionsBg, 860f);
-            var actionsLe = actionsPanel.GetComponent<LayoutElement>();
-            actionsLe.preferredHeight = 88f;
-            actionsLe.flexibleHeight = 0f;
-            actionsLe.minHeight = 88f;
+            GameObject actionsPanel;
+            LayoutElement actionsLe;
+
+            if (OverlayCanvasUtility.UseCompactEmbedLayout)
+            {
+                actionsPanel = new GameObject("CampActions");
+                actionsPanel.transform.SetParent(parent, false);
+                m_ActionsPanel = actionsPanel;
+
+                var actionsRect = actionsPanel.AddComponent<RectTransform>();
+                actionsRect.anchorMin = new Vector2(0f, 0f);
+                actionsRect.anchorMax = new Vector2(1f, 0f);
+                actionsRect.pivot = new Vector2(0.5f, 0f);
+                actionsRect.sizeDelta = new Vector2(0f, EmbedActionBarHeight);
+                actionsRect.anchoredPosition = Vector2.zero;
+
+                var actionsBg = actionsPanel.AddComponent<Image>();
+                actionsBg.color = ActionsBg;
+                UiImageUtility.EnsureVisible(actionsBg);
+            }
+            else
+            {
+                actionsPanel = CreateSubPanel(parent, "CampActions", ActionsBg, 860f);
+                m_ActionsPanel = actionsPanel;
+                actionsLe = actionsPanel.GetComponent<LayoutElement>();
+                actionsLe.preferredHeight = 88f;
+                actionsLe.flexibleHeight = 0f;
+                actionsLe.minHeight = 88f;
+            }
 
             var actionsList = new GameObject("ActionsList");
             actionsList.transform.SetParent(actionsPanel.transform, false);
             m_ActionsList = actionsList.transform;
-            var actionsListRect = actionsList.AddComponent<RectTransform>();
-            actionsListRect.sizeDelta = new Vector2(840f, 52f);
+            StretchFill(actionsList);
 
             var actionsLayout = actionsList.AddComponent<HorizontalLayoutGroup>();
+            actionsLayout.padding = new RectOffset(12, 12, 10, 10);
             actionsLayout.spacing = 10f;
             actionsLayout.childControlWidth = true;
             actionsLayout.childControlHeight = true;
@@ -501,7 +609,13 @@ namespace GreenPrince
             if (m_Panel == null || m_ShopBody == null || m_LoadoutBody == null
                 || m_DetailPanel == null || m_LeftPanel == null || m_MainRow == null
                 || GetLoadoutGridTransform() == null || m_ResourcesLabel == null
-                || m_DetailTitle == null)
+                || m_DetailTitle == null || m_ActionsList == null)
+                return false;
+
+            if (m_ActionRows.Count < 3)
+                return false;
+
+            if (OverlayCanvasUtility.UseCompactEmbedLayout && m_Panel.transform.Find("TopContent/Header") == null)
                 return false;
 
             var grid = GetLoadoutGridTransform().GetComponent<GridLayoutGroup>();
@@ -509,6 +623,50 @@ namespace GreenPrince
                 && grid.constraint == GridLayoutGroup.Constraint.FixedRowCount
                 && grid.constraintCount == LoadoutRows
                 && m_OfferRows.Count == CampShopCatalogSO.MaxVisibleOffers;
+        }
+
+        static Transform FindPanelChild(Transform panel, string childName)
+        {
+            var direct = panel.Find(childName);
+            if (direct != null)
+                return direct;
+
+            var topContent = panel.Find("TopContent");
+            if (topContent == null)
+                return null;
+
+            direct = topContent.Find(childName);
+            if (direct != null)
+                return direct;
+
+            var header = topContent.Find("Header");
+            return header != null ? header.Find(childName) : null;
+        }
+
+        void RebindActionRowsFromHierarchy()
+        {
+            if (m_ActionsList == null)
+                return;
+
+            m_ActionRows.Clear();
+            TryAddActionRow(NavKind.ActionContinue);
+            TryAddActionRow(NavKind.ActionMoveCamp);
+            TryAddActionRow(NavKind.ActionTogglePanel);
+        }
+
+        void TryAddActionRow(NavKind kind)
+        {
+            var rowTransform = m_ActionsList.Find($"Action_{kind}");
+            if (rowTransform == null)
+                return;
+
+            m_ActionRows.Add(new ActionRow
+            {
+                Kind = kind,
+                Root = rowTransform.gameObject,
+                Background = rowTransform.GetComponent<Image>(),
+                Label = rowTransform.Find("Label")?.GetComponent<TextMeshProUGUI>()
+            });
         }
 
         void BindUiReferencesFromHierarchy()
@@ -523,7 +681,8 @@ namespace GreenPrince
             if (m_Panel == null)
                 return;
 
-            var mainRow = m_Panel.transform.Find("MainRow");
+            var panelTransform = m_Panel.transform;
+            var mainRow = FindPanelChild(panelTransform, "MainRow");
             if (mainRow == null)
                 return;
 
@@ -563,23 +722,27 @@ namespace GreenPrince
                 m_DetailBody = detail.Find("DetailBody")?.GetComponent<TextMeshProUGUI>();
             }
 
-            if (m_TitleLabel == null || m_ResourcesLabel == null)
-            {
-                foreach (Transform child in m_Panel.transform)
-                {
-                    if (child.name == "TitleLabel")
-                        m_TitleLabel = child.GetComponent<TextMeshProUGUI>();
-                    else if (child.name == "ResourcesLabel")
-                        m_ResourcesLabel = child.GetComponent<TextMeshProUGUI>();
-                }
-            }
+            if (m_TitleLabel == null)
+                m_TitleLabel = FindPanelChild(panelTransform, "TitleLabel")?.GetComponent<TextMeshProUGUI>();
+            if (m_ResourcesLabel == null)
+                m_ResourcesLabel = FindPanelChild(panelTransform, "ResourcesLabel")?.GetComponent<TextMeshProUGUI>();
 
             if (m_ActionsList == null)
             {
-                var actions = m_Panel.transform.Find("CampActions/ActionsList");
+                var actions = panelTransform.Find("CampActions/ActionsList");
                 if (actions != null)
                     m_ActionsList = actions;
             }
+
+            if (m_ActionsPanel == null)
+            {
+                var actionsPanel = panelTransform.Find("CampActions");
+                if (actionsPanel != null)
+                    m_ActionsPanel = actionsPanel.gameObject;
+            }
+
+            if (m_ActionRows.Count == 0)
+                RebindActionRowsFromHierarchy();
         }
 
         Transform GetLoadoutGridTransform()
@@ -615,6 +778,7 @@ namespace GreenPrince
             m_DetailCost = null;
             m_DetailBody = null;
             m_ActionsList = null;
+            m_ActionsPanel = null;
             m_OfferRows.Clear();
             m_ActionRows.Clear();
             m_LoadoutCells.Clear();
@@ -633,7 +797,7 @@ namespace GreenPrince
                 m_DetailPanel.SetActive(shop);
             m_TitleLabel.text = shop ? "Camp Shop" : "Camp Loadout";
 
-            if (m_MainRow != null)
+            if (m_MainRow != null && !OverlayCanvasUtility.UseCompactEmbedLayout)
             {
                 var mainRowLe = m_MainRow.GetComponent<LayoutElement>();
                 if (mainRowLe != null)
@@ -648,9 +812,18 @@ namespace GreenPrince
                 var leftLe = m_LeftPanel.GetComponent<LayoutElement>();
                 if (leftLe != null)
                 {
-                    leftLe.preferredWidth = shop ? 300f : 700f;
-                    leftLe.preferredHeight = shop ? 300f : -1f;
-                    leftLe.flexibleHeight = shop ? 0f : 1f;
+                    if (OverlayCanvasUtility.UseCompactEmbedLayout)
+                    {
+                        leftLe.preferredWidth = shop ? 220f : 620f;
+                        leftLe.flexibleWidth = shop ? 0f : 1f;
+                        leftLe.flexibleHeight = 0f;
+                    }
+                    else
+                    {
+                        leftLe.preferredWidth = shop ? 300f : 700f;
+                        leftLe.preferredHeight = shop ? 300f : -1f;
+                        leftLe.flexibleHeight = shop ? 0f : 1f;
+                    }
                 }
             }
 
@@ -801,9 +974,13 @@ namespace GreenPrince
                     OnContinue();
                     break;
                 case NavKind.ActionMoveCamp:
+                    if (!IsActionEnabled(NavKind.ActionMoveCamp))
+                        return;
                     OnMoveCamp();
                     break;
                 case NavKind.ActionTogglePanel:
+                    if (!IsActionEnabled(NavKind.ActionTogglePanel))
+                        return;
                     TogglePanelMode();
                     break;
             }
@@ -866,12 +1043,8 @@ namespace GreenPrince
                 if (offer == null) continue;
 
                 bool isSelected = selected.Kind == NavKind.ShopOffer && selected.Index == i;
-                if (isSelected)
-                    row.Background.color = RowSelected;
-                else if (!offer.CanAfford())
-                    row.Background.color = RowUnaffordable;
-                else
-                    row.Background.color = RowNormal;
+                bool canAfford = offer.CanAfford();
+                ApplySelectableRowStyle(row.Background, row.Label, isSelected, canAfford);
             }
 
             for (int i = 0; i < m_LoadoutCells.Count; i++)
@@ -900,14 +1073,48 @@ namespace GreenPrince
                 row.Root.SetActive(visible);
                 if (!visible) continue;
 
+                bool enabled = IsActionEnabled(row.Kind);
                 bool isSelected = selected.Kind == row.Kind;
-                if (isSelected)
-                    row.Background.color = RowSelected;
-                else if (row.Kind == NavKind.ActionTogglePanel && WorldState.LoadoutNeedsAttention && m_Mode == PanelMode.Shop)
-                    row.Background.color = ActionAttention;
-                else
-                    row.Background.color = RowNormal;
+                bool useAttention = row.Kind == NavKind.ActionTogglePanel
+                    && WorldState.LoadoutNeedsAttention
+                    && m_Mode == PanelMode.Shop;
+                ApplySelectableRowStyle(row.Background, row.Label, isSelected, enabled, useAttention);
             }
+        }
+
+        static void ApplySelectableRowStyle(
+            Image background,
+            TextMeshProUGUI label,
+            bool isSelected,
+            bool enabled,
+            bool useAttention = false)
+        {
+            if (background == null)
+                return;
+
+            if (isSelected)
+            {
+                background.color = RowSelected;
+                if (label != null)
+                {
+                    label.color = Accent;
+                    label.fontStyle = FontStyles.Bold;
+                }
+                return;
+            }
+
+            if (label != null)
+            {
+                label.fontStyle = FontStyles.Normal;
+                label.color = enabled ? Color.white : new Color(0.65f, 0.67f, 0.72f);
+            }
+
+            if (!enabled)
+                background.color = RowUnaffordable;
+            else if (useAttention)
+                background.color = ActionAttention;
+            else
+                background.color = RowNormal;
         }
 
         void RefreshDetail()
@@ -996,8 +1203,19 @@ namespace GreenPrince
                 case NavKind.ActionMoveCamp:
                     m_DetailTitle.text = "Move Camp";
                     m_DetailCost.text = "";
-                    m_DetailBody.text =
-                        "Caravan to the landmark marked ★ GOAL. Failure fully restarts the game.";
+                    if (WorldState.HasMigrated)
+                        m_DetailBody.text = "Your camp has already migrated from this region.";
+                    else if (WorldState.CanMoveCamp)
+                        m_DetailBody.text =
+                            "Caravan to the landmark marked ★ GOAL. Failure fully restarts the game.";
+                    else
+                    {
+                        int owned = WorldState.CampCardIds?.Count ?? 0;
+                        int needed = 4 - owned;
+                        m_DetailBody.text = needed > 0
+                            ? $"Purchase {needed} more camp upgrade{(needed == 1 ? "" : "s")} to unlock the caravan."
+                            : "Move Camp is unavailable right now.";
+                    }
                     break;
                 case NavKind.ActionTogglePanel:
                     if (m_Mode == PanelMode.Shop)
@@ -1023,6 +1241,17 @@ namespace GreenPrince
             return kind switch
             {
                 NavKind.ActionContinue => true,
+                NavKind.ActionMoveCamp => !WorldState.HasMigrated,
+                NavKind.ActionTogglePanel => (WorldState.CampCardIds?.Count ?? 0) >= 5,
+                _ => false
+            };
+        }
+
+        bool IsActionEnabled(NavKind kind)
+        {
+            return kind switch
+            {
+                NavKind.ActionContinue => true,
                 NavKind.ActionMoveCamp => WorldState.CanMoveCamp,
                 NavKind.ActionTogglePanel => (WorldState.CampCardIds?.Count ?? 0) >= 5,
                 _ => false
@@ -1039,6 +1268,7 @@ namespace GreenPrince
 
             var img = go.AddComponent<Image>();
             img.color = RowNormal;
+            UiImageUtility.EnsureVisible(img);
 
             var labelGo = new GameObject("Label");
             labelGo.transform.SetParent(go.transform, false);
@@ -1067,6 +1297,7 @@ namespace GreenPrince
             var rect = go.AddComponent<RectTransform>();
             var bg = go.AddComponent<Image>();
             bg.color = RowNormal;
+            UiImageUtility.EnsureVisible(bg);
 
             var borderGo = new GameObject("FocusBorder");
             borderGo.transform.SetParent(go.transform, false);
@@ -1078,6 +1309,7 @@ namespace GreenPrince
             var borderImg = borderGo.AddComponent<Image>();
             borderImg.color = Accent;
             borderImg.enabled = false;
+            UiImageUtility.EnsureVisible(borderImg);
 
             var iconGo = new GameObject("Icon");
             iconGo.transform.SetParent(go.transform, false);
@@ -1150,6 +1382,7 @@ namespace GreenPrince
 
             var bg = go.AddComponent<Image>();
             bg.color = new Color(0.14f, 0.15f, 0.18f, 0.6f);
+            UiImageUtility.EnsureVisible(bg);
 
             return new LoadoutCell { Root = go, Background = bg };
         }
@@ -1165,6 +1398,7 @@ namespace GreenPrince
 
             var img = go.AddComponent<Image>();
             img.color = RowNormal;
+            UiImageUtility.EnsureVisible(img);
 
             var labelGo = new GameObject("Label");
             labelGo.transform.SetParent(go.transform, false);
@@ -1254,6 +1488,7 @@ namespace GreenPrince
 
             var img = go.AddComponent<Image>();
             img.color = bgColor;
+            UiImageUtility.EnsureVisible(img);
             return go;
         }
 

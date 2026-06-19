@@ -27,8 +27,7 @@ namespace GreenPrince
             canvas.sortingOrder = 100;
 
             var scaler = gameObject.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920, 1080);
+            OverlayCanvasUtility.Configure(scaler);
 
             gameObject.AddComponent<GraphicRaycaster>();
 

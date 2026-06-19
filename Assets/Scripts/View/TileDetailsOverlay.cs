@@ -43,8 +43,7 @@ namespace GreenPrince
             canvas.sortingOrder = 60;
 
             var scaler = gameObject.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920, 1080);
+            OverlayCanvasUtility.Configure(scaler);
 
             for (int i = 0; i < MaxLabels; i++)
                 m_LabelPool.Add(StandardTooltipWidget.Create(transform));

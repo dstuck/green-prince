@@ -97,8 +97,20 @@ namespace GreenPrince
             InitPauseMenu();
             InitShopPopup();
             InitTileDetails();
+            EnsureViewportCameraFit();
 
             m_PartyToken.MoveRequested += OnMoveRequested;
+        }
+
+        void EnsureViewportCameraFit()
+        {
+            if (!OverlayCanvasUtility.UseCompactEmbedLayout)
+                return;
+
+            var cam = Camera.main;
+            if (cam == null || cam.GetComponent<ViewportCameraFit>() != null)
+                return;
+            cam.gameObject.AddComponent<ViewportCameraFit>();
         }
 
         void OnDestroy()
@@ -315,9 +327,7 @@ namespace GreenPrince
 
             yield return null;
 
-            WorldState.EndCaravan();
-            m_State = GameState.Shopping;
-            m_ShopPopup.Show(m_ShopCatalog);
+            OpenCampShop();
         }
 
         void TriggerCaravanFailure()
@@ -506,7 +516,12 @@ namespace GreenPrince
 
             yield return null;
 
-            WorldState.EndCaravan();
+            OpenCampShop();
+        }
+
+        void OpenCampShop()
+        {
+            m_HUD.ClearStatusMessage();
             m_State = GameState.Shopping;
             m_ShopPopup.Show(m_ShopCatalog);
         }

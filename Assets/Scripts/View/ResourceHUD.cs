@@ -37,11 +37,10 @@ namespace GreenPrince
         {
             var canvas = gameObject.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 10;
+            canvas.sortingOrder = OverlayCanvasUtility.UseCompactEmbedLayout ? 100 : 10;
 
             var scaler = gameObject.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920, 1080);
+            OverlayCanvasUtility.Configure(scaler);
 
             gameObject.AddComponent<GraphicRaycaster>();
 
@@ -132,8 +131,32 @@ namespace GreenPrince
 
         public void ShowReturningToCamp()
         {
+            if (m_StatusLabel == null)
+                return;
+
+            if (m_StatusMessageRoutine != null)
+            {
+                StopCoroutine(m_StatusMessageRoutine);
+                m_StatusMessageRoutine = null;
+            }
+
             m_StatusLabel.text = "Returning to Camp...";
             m_StatusLabel.enabled = true;
+        }
+
+        public void ClearStatusMessage()
+        {
+            if (m_StatusMessageRoutine != null)
+            {
+                StopCoroutine(m_StatusMessageRoutine);
+                m_StatusMessageRoutine = null;
+            }
+
+            if (m_StatusLabel == null)
+                return;
+
+            m_StatusLabel.text = "";
+            m_StatusLabel.enabled = false;
         }
 
         public void ShowStatusMessage(string message, float durationSeconds = 2.5f)
@@ -151,13 +174,7 @@ namespace GreenPrince
         IEnumerator HideStatusMessageAfter(float durationSeconds)
         {
             yield return new WaitForSeconds(durationSeconds);
-            if (m_StatusLabel != null)
-            {
-                m_StatusLabel.text = "";
-                m_StatusLabel.enabled = false;
-            }
-
-            m_StatusMessageRoutine = null;
+            ClearStatusMessage();
         }
 
         public void FlashSpend(ResourceType type)
