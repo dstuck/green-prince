@@ -1013,6 +1013,8 @@ namespace GreenPrince
             var offer = entry.Card;
             if (offer == null || !offer.TryPurchase()) return;
 
+            SoundFXManager.instance?.PlayUpgradePurchased(transform);
+
             if (WorldState.UsesLandmarkShopChain(entry.ChainIndex, m_Catalog))
                 WorldState.AdvanceLandmarkShopChain(entry.ChainIndex);
             else

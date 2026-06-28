@@ -12,17 +12,17 @@ namespace GreenPrince
         [SerializeField] InputActionReference m_MoveActionRef;
         [SerializeField] float m_MoveSpeed = 8f;
         [SerializeField] float m_StepCooldown = 0.2f;
+        [SerializeField] Sprite m_WandererSprite;
+        [SerializeField] Sprite m_CampCartSprite;
 
         public event Action<Vector2Int> MoveRequested;
-
-        static readonly Color PartyColor = new Color(0.4f, 0.85f, 1f);
-        static readonly Color CampColor = new Color(0.9f, 0.75f, 0.3f);
 
         Vector2Int m_GridPosition;
         Vector3 m_TargetWorldPos;
         float m_CooldownTimer;
         bool m_WasNeutral = true;
         bool m_AcceptingMoveInput = true;
+        bool m_UseCampCartAppearance;
         SpriteRenderer m_SpriteRenderer;
 
         public Vector2Int GridPosition => m_GridPosition;
@@ -35,14 +35,26 @@ namespace GreenPrince
         void Awake()
         {
             m_SpriteRenderer = GetComponent<SpriteRenderer>();
+            ApplyAppearance();
         }
 
-        public void SetCampAppearance(bool useCampAppearance)
+        public void SetCampAppearance(bool useCampCartAppearance)
+        {
+            m_UseCampCartAppearance = useCampCartAppearance;
+            ApplyAppearance();
+        }
+
+        void ApplyAppearance()
         {
             if (m_SpriteRenderer == null)
                 m_SpriteRenderer = GetComponent<SpriteRenderer>();
-            if (m_SpriteRenderer != null)
-                m_SpriteRenderer.color = useCampAppearance ? CampColor : PartyColor;
+            if (m_SpriteRenderer == null)
+                return;
+
+            var sprite = m_UseCampCartAppearance ? m_CampCartSprite : m_WandererSprite;
+            if (sprite != null)
+                m_SpriteRenderer.sprite = sprite;
+            m_SpriteRenderer.color = Color.white;
         }
 
         public void SetGridPosition(Vector2Int pos, Vector3 worldPos)

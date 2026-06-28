@@ -6,6 +6,8 @@ namespace GreenPrince
 {
     public class GridView : MonoBehaviour
     {
+        [SerializeField] Sprite m_CampTileSprite;
+
         TileView[,] m_TileViews;
         ICardDefinitionRegistry m_Registry;
         Vector2Int? m_CaravanGoal;
@@ -13,6 +15,7 @@ namespace GreenPrince
         public void Initialize(GridModel model, ICardDefinitionRegistry registry)
         {
             m_Registry = registry;
+            TileView.SetCampTileSprite(m_CampTileSprite);
             m_TileViews = new TileView[model.Width, model.Height];
 
             for (int x = 0; x < model.Width; x++)
@@ -46,7 +49,7 @@ namespace GreenPrince
                 return;
             }
 
-            if (tileState.IsCamp)
+            if (tileState.IsCamp && !WorldState.IsCaravanActive)
             {
                 view.ShowCamp();
                 return;
