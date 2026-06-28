@@ -6,12 +6,15 @@ namespace GreenPrince
     public class TileView : MonoBehaviour
     {
         static readonly Color UnexploredColor = new Color(0.15f, 0.15f, 0.2f);
-        static readonly Color CampColor = new Color(0.9f, 0.75f, 0.3f);
+        static readonly Color CampBaselineColor = new Color(0.3f, 0.55f, 0.3f);
+        static Sprite s_CampTileSprite;
         static readonly Color LandmarkColor = new Color(0.85f, 0.65f, 0.9f);
         static readonly Color HazardColor = new Color(0.8f, 0.35f, 0.3f);
         static readonly Color CaravanGoalColor = new Color(1f, 0.88f, 0.25f);
 
         SpriteRenderer m_Renderer;
+        Sprite m_DefaultTileSprite;
+        Vector3 m_DefaultIconScale;
         bool m_IsCaravanGoal;
         TextMeshPro m_Label;
         SpriteRenderer m_ChallengeRenderer;
@@ -23,10 +26,13 @@ namespace GreenPrince
 
         public Vector2Int GridPosition { get; private set; }
 
+        public static void SetCampTileSprite(Sprite campTileSprite) => s_CampTileSprite = campTileSprite;
+
         public void SetCaravanGoalHighlight(bool isGoal) => m_IsCaravanGoal = isGoal;
 
         public void ShowCaravanGoalUnrevealed()
         {
+            UseDefaultTileSprite();
             m_Renderer.color = CaravanGoalColor;
             m_Label.text = "★ GOAL";
             m_Label.fontSize = 2.6f;
@@ -42,6 +48,7 @@ namespace GreenPrince
             GridPosition = gridPosition;
 
             m_Renderer = GetComponent<SpriteRenderer>();
+            m_DefaultTileSprite = m_Renderer.sprite;
             m_Label = transform.Find("Label").GetComponent<TextMeshPro>();
 
             var challengeGo = transform.Find("ChallengeIndicator");
@@ -53,6 +60,7 @@ namespace GreenPrince
             m_BenefitLabel = benefitGo.GetComponentInChildren<TextMeshPro>();
 
             m_IconRenderer = transform.Find("TileIcon").GetComponent<SpriteRenderer>();
+            m_DefaultIconScale = m_IconRenderer.transform.localScale;
 
             var pickupContainer = transform.Find("PickupContainer");
             m_PickupRenderers = pickupContainer.GetComponentsInChildren<SpriteRenderer>(includeInactive: true);
@@ -62,6 +70,7 @@ namespace GreenPrince
 
         public void ShowUnexplored()
         {
+            UseDefaultTileSprite();
             m_Renderer.color = UnexploredColor;
             m_Label.text = "";
             HideChallenge();
@@ -73,6 +82,7 @@ namespace GreenPrince
         public void ShowExploredFog(TerrainType terrain, WorldFeature feature,
             System.Collections.Generic.List<WorldPickup> pickups)
         {
+            UseDefaultTileSprite();
             m_Renderer.color = GetTerrainFogColor(terrain);
             HideChallenge();
             HideBenefit();
@@ -95,18 +105,31 @@ namespace GreenPrince
 
         public void ShowCamp()
         {
-            m_Renderer.color = CampColor;
+            UseDefaultTileSprite();
+            m_Renderer.color = CampBaselineColor;
             m_Label.text = "";
             HideChallenge();
             HideBenefit();
-            HideIcon();
             HidePickups();
+
+            if (s_CampTileSprite != null)
+            {
+                m_IconRenderer.sprite = s_CampTileSprite;
+                m_IconRenderer.color = Color.white;
+                m_IconRenderer.transform.localScale = m_DefaultIconScale * 2.2f;
+                m_IconRenderer.enabled = true;
+            }
+            else
+            {
+                HideIcon();
+            }
         }
 
         public void ShowRevealed(TileDefinitionSO definition, TileInstanceState state,
             bool visited, TerrainType terrain, WorldFeature feature,
             System.Collections.Generic.List<WorldPickup> pickups)
         {
+            UseDefaultTileSprite();
             m_Renderer.color = GetTerrainColor(terrain);
             ShowPickups(pickups);
             HideIcon();
@@ -159,6 +182,12 @@ namespace GreenPrince
             ApplyGoalAccent();
         }
 
+        void UseDefaultTileSprite()
+        {
+            if (m_DefaultTileSprite != null)
+                m_Renderer.sprite = m_DefaultTileSprite;
+        }
+
         void ApplyGoalAccent()
         {
             if (!m_IsCaravanGoal) return;
@@ -209,6 +238,7 @@ namespace GreenPrince
         void HideIcon()
         {
             m_IconRenderer.enabled = false;
+            m_IconRenderer.transform.localScale = m_DefaultIconScale;
         }
 
         void ShowPickups(System.Collections.Generic.List<WorldPickup> pickups)

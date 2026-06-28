@@ -225,6 +225,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d9b94a7cfb1040e2b91b8bdedbd1181, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_CampTileSprite: {fileID: 21300000, guid: aae434f624e814c529c6fe8e8767e8f8, type: 3}
 --- !u!4 &149540320
 Transform:
   m_ObjectHideFlags: 0
@@ -725,6 +726,8 @@ MonoBehaviour:
   m_MoveActionRef: {fileID: -1680190386980627800, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_MoveSpeed: 8
   m_StepCooldown: 0.2
+  m_WandererSprite: {fileID: -5935639697508351391, guid: affca7b2bf7814251be32a41019d9b0f, type: 3}
+  m_CampCartSprite: {fileID: -1194622946888703771, guid: 656ae41fa910c4bbb99376ac0a027991, type: 3}
 --- !u!212 &1457951041
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -795,6 +798,57 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1593571245
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1593571247}
+  - component: {fileID: 1593571246}
+  m_Layer: 0
+  m_Name: SoundFXManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1593571246
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1593571245}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be09bc7f6461c4126b7cf774f9194588, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_StepClips:
+  - {fileID: 8300000, guid: ae92e7ea0170446fda178f004290e834, type: 3}
+  - {fileID: 8300000, guid: 85cba49096d5948c6b0d919ba4ed1744, type: 3}
+  - {fileID: 8300000, guid: f99ab6af85bbd49009b30432cb11330a, type: 3}
+  m_MapGemClip: {fileID: 8300000, guid: a7e6d6f0f91264336b843d699b335f58, type: 3}
+  m_UpgradeGemClip: {fileID: 8300000, guid: d7f4ccdee13f44a73a9775837fc5f9fd, type: 3}
+  m_LandmarkBeatenClip: {fileID: 8300000, guid: 81533b2ffa2ea4601a455683ac1c58a6, type: 3}
+--- !u!4 &1593571247
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1593571245}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!28 &1889331755
 Texture2D:
   m_ObjectHideFlags: 0
@@ -850,3 +904,4 @@ SceneRoots:
   - {fileID: 149540320}
   - {fileID: 1457951042}
   - {fileID: 28255316}
+  - {fileID: 1593571247}

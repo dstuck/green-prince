@@ -249,6 +249,7 @@ namespace GreenPrince
                 if (tile.Feature != null && tile.Feature.HasActiveChallenge)
                 {
                     tile.Feature.IsOvercome = true;
+                    SoundFXManager.instance?.PlayLandmarkBeaten(m_PartyToken.transform);
                     GrantFeatureRewardsIfNeeded(tile.Feature);
                     TryUnlockHelpfulGoblin(tile.Feature);
                 }
@@ -269,6 +270,7 @@ namespace GreenPrince
 
             var wp = m_GridView.GridToWorld(target);
             m_PartyToken.MoveTo(target, wp);
+            SoundFXManager.instance?.PlayStepSound(m_PartyToken.transform);
 
             RevealAdjacent(target);
 
@@ -316,14 +318,14 @@ namespace GreenPrince
         {
             yield return m_PartyToken.WaitUntilArrived();
 
-            var tile = m_Grid.GetTile(pos);
-            m_GridView.UpdateTile(pos, tile);
-
+            var oldCampPos = m_Grid.CampPosition;
             WorldState.CompleteMigration(pos);
             m_Grid.RelocateCamp(pos);
             m_IsCaravanRun = false;
             m_PartyToken.SetCampAppearance(false);
             m_GridView.SetCaravanGoal(null);
+            m_GridView.UpdateTile(oldCampPos, m_Grid.GetTile(oldCampPos));
+            m_GridView.UpdateTile(pos, m_Grid.GetTile(pos));
 
             yield return null;
 
@@ -488,7 +490,10 @@ namespace GreenPrince
         void CollectPickupsIfAny(Vector2Int pos)
         {
             if (WorldState.CollectPickupsAt(pos))
+            {
+                SoundFXManager.instance?.PlayMapGemPickup(m_PartyToken.transform);
                 m_GridView.UpdateTile(pos, m_Grid.GetTile(pos));
+            }
         }
 
         static int GetEffectiveCost(TileDefinitionSO def, TileInstanceState state)
